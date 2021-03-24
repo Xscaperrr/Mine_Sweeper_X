@@ -31,13 +31,17 @@ if(ANDROID)
   add_library(Mine_Sweeper_X SHARED
     main.cpp
     mainwindow.cpp
+    cell.cpp
     mainwindow.h
+  cell.h
   )
 else()
   add_executable(Mine_Sweeper_X
     main.cpp
     mainwindow.cpp
+    cell.cpp
     mainwindow.h
+    cell.h
   )
 endif()
 
