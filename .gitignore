@@ -70,4 +70,6 @@ Thumbs.db
 # --------
 *.dll
 *.exe
+build/*
+.vscode/*
 
