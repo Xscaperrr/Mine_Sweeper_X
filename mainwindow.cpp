@@ -21,8 +21,6 @@ MainWindow::MainWindow(QWidget *parent)
     Cell *a=new Cell(500,500);
     QGraphicsLineItem *l=new QGraphicsLineItem(0,0,500,500);
     QGraphicsPixmapItem *p=new QGraphicsPixmapItem();
-    QPixmap pi("C:/Users/Lee/Desktop/Cpp Work/Mines_Sweeper/Mine_Sweeper_X/images/blank.png");
-    p->setPixmap(pi.scaled(150,150));
     //scene->addItem(l);
     scene->addItem(a);
     //scene->addItem(p);

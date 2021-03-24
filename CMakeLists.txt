@@ -33,10 +33,11 @@ if(ANDROID)
     mainwindow.cpp
     cell.cpp
     mainwindow.h
-  cell.h
+    cell.h
   )
 else()
   add_executable(Mine_Sweeper_X
+    res.qrc
     main.cpp
     mainwindow.cpp
     cell.cpp
