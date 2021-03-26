@@ -6,9 +6,11 @@
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QGraphicsItem>
+#include <QGraphicsSceneMouseEvent>  
 #include <QMenuBar>
 #include <QAction>
 #include <QGraphicsItem>
+#include <iostream>
 
 class GraphicsView : public QGraphicsView
 {
@@ -16,6 +18,8 @@ class GraphicsView : public QGraphicsView
 
 public:
     GraphicsView(QGraphicsScene *scene=nullptr,QWidget *parent = nullptr);
+    void mousePressEvent(QMouseEvent *event);
+    void mouseReleaseEvent(QMouseEvent *event);
     ~GraphicsView();
 };
 
@@ -29,10 +33,21 @@ public:
     QMenuBar *menubar;
     std::vector<QMenu*> menus;
     std::vector<QAction*> actions;
+
     MainWindow(QWidget *parent = nullptr);
+    void mousePressEvent(QMouseEvent *event);
+    void mouseReleaseEvent(QMouseEvent *event);
     ~MainWindow();
 };
 
-
+class GraphicsScene : public QGraphicsScene
+{
+    Q_OBJECT
+public:
+    GraphicsScene(QObject *parent = nullptr);
+    void mousePressEvent(QGraphicsSceneMouseEvent  *event);
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent  *event);
+    ~GraphicsScene();
+};
 
 #endif // MAINWINDOW_H

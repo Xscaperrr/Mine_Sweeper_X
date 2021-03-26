@@ -9,3 +9,17 @@ Cell::Cell(qreal x,qreal y)
 Cell::~Cell()
 {
 };
+
+void Cell::mousePressEvent(QGraphicsSceneMouseEvent *event)
+{
+    std::cout<<"ook!"<<std::endl;
+   
+    if (event->button() == Qt::RightButton)
+    {
+         QPixmap *flag = new QPixmap("://images/flag.png");
+        setPixmap(*flag);
+    }
+}
+void Cell::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+{
+}

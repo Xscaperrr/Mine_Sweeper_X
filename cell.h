@@ -2,13 +2,15 @@
 #define CELL_H
 #include <QGraphicsPixmapItem>
 #include <QPixmap>
-#include <QMouseEvent>
+#include <QGraphicsSceneMouseEvent>  
+#include <iostream>
+
 class Cell : public QGraphicsPixmapItem 
 {
 public:
     Cell(qreal x,qreal y);
-    void mousePressEvent(QMouseEvent *event);
-    void mouseReleaseEvent(QMouseEvent *event);
+    void mousePressEvent(QGraphicsSceneMouseEvent *event);
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
     ~Cell();
 };
 
