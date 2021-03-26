@@ -16,7 +16,7 @@ void Cell::mousePressEvent(QGraphicsSceneMouseEvent *event)
    
     if (event->button() == Qt::RightButton)
     {
-         QPixmap *flag = new QPixmap("://images/flag.png");
+        QPixmap *flag = new QPixmap("://images/flag.png");
         setPixmap(*flag);
     }
 }
