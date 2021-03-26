@@ -8,7 +8,7 @@ MainWindow::MainWindow(QWidget *parent)
       menubar(new QMenuBar(this))
 
 {
-    resize(1200,900);
+    resize(1600,900);
     setCentralWidget(view);
     setMenuBar(menubar);
     menus.push_back(new QMenu("设置"));
@@ -18,12 +18,17 @@ MainWindow::MainWindow(QWidget *parent)
         menubar->addMenu(menus[i]);
         menus[i]->addAction(actions[i]);
     }
-    Cell *a=new Cell(500,500);
-    QGraphicsLineItem *l=new QGraphicsLineItem(0,0,500,500);
-    QGraphicsPixmapItem *p=new QGraphicsPixmapItem();
-    //scene->addItem(l);
-    scene->addItem(a);
-    //scene->addItem(p);
+    Cell *a;
+   
+    //scene->addItem(a);
+    scene->setSceneRect(0,0,1600,900);
+    for(int i=0;i<32;i++)
+        for(int j=0;j<18;j++)
+        {
+            a=new Cell(50*i,50*j);
+            scene->addItem(a);
+        }
+    
 }
 
 MainWindow::~MainWindow()
