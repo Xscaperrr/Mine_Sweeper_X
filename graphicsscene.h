@@ -16,7 +16,7 @@ public:
 
     static QPixmap *blank;
     static QPixmap *flag;
-    static QPixmap *exp ;
+    static QPixmap *bomb ;
     static QPixmap *ini ;
     static QPixmap *question;
     static QPixmap *num1;

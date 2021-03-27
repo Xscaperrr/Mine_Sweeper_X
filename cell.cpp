@@ -27,6 +27,42 @@ void Cell::Henso(CellStatus NewStatus)
         status=CellStatus::question;
         setPixmap(*GraphicsScene::question);
         break;
+    case CellStatus::bomb:
+        status=CellStatus::bomb;
+        setPixmap(*GraphicsScene::bomb);
+        break;
+    case CellStatus::num:
+        status=CellStatus::num;
+        switch (MineNum)
+        {
+        case 1:
+            setPixmap(*GraphicsScene::num1);
+            break;
+        case 2:
+            setPixmap(*GraphicsScene::num2);
+            break;
+        case 3:
+            setPixmap(*GraphicsScene::num3);
+            break;
+        case 4:
+            setPixmap(*GraphicsScene::num4);
+            break;
+        case 5:
+            setPixmap(*GraphicsScene::num5);
+            break;
+        case 6:
+            setPixmap(*GraphicsScene::num6);
+            break;
+        case 7:
+            setPixmap(*GraphicsScene::num7);
+            break;
+        case 8:
+            setPixmap(*GraphicsScene::num8);
+            break;
+        default:
+            break;
+        }
+        break;
     default:
         break;
     }
