@@ -29,11 +29,14 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
 
 if(ANDROID)
   add_library(Mine_Sweeper_X SHARED
+    res.qrc
     main.cpp
     mainwindow.cpp
     cell.cpp
+    graphicsscene.cpp
     mainwindow.h
     cell.h
+    graphicsscene.h
   )
 else()
   add_executable(Mine_Sweeper_X
@@ -41,8 +44,10 @@ else()
     main.cpp
     mainwindow.cpp
     cell.cpp
+    graphicsscene.cpp
     mainwindow.h
     cell.h
+    graphicsscene.h
   )
 endif()
 

@@ -4,13 +4,14 @@
 #include <vector>
 #include <QMainWindow>
 #include <QGraphicsView>
-#include <QGraphicsScene>
+// #include <QGraphicsScene>
 #include <QGraphicsItem>
-#include <QGraphicsSceneMouseEvent>  
+// #include <QGraphicsSceneMouseEvent>  
 #include <QMenuBar>
 #include <QAction>
 #include <QGraphicsItem>
 #include <iostream>
+#include "graphicsscene.h"
 
 class GraphicsView : public QGraphicsView
 {
@@ -28,7 +29,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    QGraphicsScene *scene;
+    GraphicsScene *scene;
     GraphicsView *view;
     QMenuBar *menubar;
     std::vector<QMenu*> menus;
@@ -38,16 +39,6 @@ public:
     void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
     ~MainWindow();
-};
-
-class GraphicsScene : public QGraphicsScene
-{
-    Q_OBJECT
-public:
-    GraphicsScene(QObject *parent = nullptr);
-    void mousePressEvent(QGraphicsSceneMouseEvent  *event);
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent  *event);
-    ~GraphicsScene();
 };
 
 #endif // MAINWINDOW_H

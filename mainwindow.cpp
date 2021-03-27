@@ -18,23 +18,13 @@ MainWindow::MainWindow(QWidget *parent)
         menubar->addMenu(menus[i]);
         menus[i]->addAction(actions[i]);
     }
-    Cell *a;
-   
-    //scene->addItem(a);
-    scene->setSceneRect(0,0,1600,900);
-    for(int i=0;i<32;i++)
-        for(int j=0;j<25;j++)
-        {
-            a=new Cell(50*i,50*j);
-            scene->addItem(a);
-        }
-    
+
 }
 
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
     QMainWindow::mousePressEvent(event);
-    std::cout<<"ojbk!"<<std::endl;
+    // std::cout<<"ojbk!"<<std::endl;
 
 }
 void MainWindow::mouseReleaseEvent(QMouseEvent *event)
@@ -53,7 +43,7 @@ GraphicsView::GraphicsView(QGraphicsScene *scene,QWidget *parent)
 void GraphicsView::mousePressEvent(QMouseEvent *event)
 {
     QGraphicsView::mousePressEvent(event);
-    std::cout<<"ok1!"<<std::endl;
+    //std::cout<<"ok1!"<<std::endl;
 }
 void GraphicsView::mouseReleaseEvent(QMouseEvent *event)
 {
@@ -61,21 +51,4 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent *event)
 }
 GraphicsView::~GraphicsView()
 {    
-}
-
-
-GraphicsScene::GraphicsScene(QObject *parent) : QGraphicsScene(parent)
-{  
-}
-void GraphicsScene::mousePressEvent(QGraphicsSceneMouseEvent  *event)
-{
-    std::cout<<"ok2!"<<std::endl;
-    QGraphicsScene::mousePressEvent(event);
-}
-void GraphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent  *event)
-{
-    QGraphicsScene::mouseReleaseEvent(event);
-}
-GraphicsScene::~GraphicsScene()
-{
 }
