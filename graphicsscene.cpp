@@ -1,6 +1,6 @@
 #include "graphicsscene.h"
 
-QPixmap * GraphicsScene::blank=nullptr;//据考证，QPixmap类设定成全局变量有bug,所以采用指针绕路
+QPixmap * GraphicsScene::blank=nullptr;//据考证，QPixmap类设定成全局变量有bug,所以采用指针,并且不在类外初始化以规避
 QPixmap * GraphicsScene::flag=nullptr;
 QPixmap * GraphicsScene::bomb=nullptr;
 QPixmap * GraphicsScene::ini=nullptr;
@@ -31,18 +31,73 @@ GraphicsScene::GraphicsScene(QObject *parent) : QGraphicsScene(parent)
     num7=new QPixmap("://images/7.png");
     num8=new QPixmap("://images/8.png");
 
-    Cell *a;
-    setSceneRect(0,0,1600,900);
-    for(int i=0;i<32;i++)
-        for(int j=0;j<25;j++)
-        {
-            a=new Cell(50*i,50*j);
-            addItem(a);
-        }
+    mines=10;
+    //setSceneRect(0,0,1600,900);
+    // for(int i=0;i<9;i++)
+    //     for(int j=0;j<9;j++)
+    //     {
+    //         a=new Cell(50*i,50*j);
+    //         addItem(a);
+    //     }
+    cells.resize(9);
+    MineBlockSet();
 }
+
+void GraphicsScene::MineBlockSet(int x,int y)
+{
+    int count=0;
+    int ifm=-1;
+    qDebug()<<'?';
+    for(int i=0;i<x;i++) 
+        for(int j=0;j<y;j++)
+        {
+            if(count>=mines) ifm=0;
+            cells[i].push_back(new Cell(ifm));
+            cell_1d.push_back(cells[i].back());
+            addItem(cells[i].back());
+            count++;
+        }
+    count=0;
+    //std::default_random_engine e(std::time(0));
+    std::default_random_engine e;
+    for(int i=0;i<x*y;i++)
+    {
+        std::uniform_int_distribution<int> u(i,x*y-1);
+        cell_1d[i]->SwapMine(*cell_1d[u(e)]);
+    }
+    if(cells[0][0]->MineNum != -1) cells[0][0]->MineNum=cells[0][1]->IfMine()+cells[1][0]->IfMine()+cells[1][1]->IfMine();
+    //qDebug()<<(int)cells[0][0]->MineNum;
+    if(cells[0][y-1]->MineNum != -1) cells[0][y-1]->MineNum=(cells[0][y-2]->IfMine()+cells[1][y-1]->IfMine()+cells[1][y-2]->IfMine());
+    //qDebug()<<(int)cells[0][y-1]->MineNum;
+    if(cells[x-1][0]->MineNum != -1) cells[x-1][0]->MineNum=(cells[x-1][1]->IfMine()+cells[x-2][0]->IfMine()+cells[x-2][1]->IfMine());
+    //qDebug()<<(int)cells[x-1][0]->MineNum;
+    if(cells[x-1][y-1]->MineNum != -1) cells[x-1][y-1]->MineNum=(cells[x-2][y-1]->IfMine()+cells[x-1][y-2]->IfMine()+cells[x-2][y-2]->IfMine());
+    //qDebug()<<(int)cells[x-1][y-1]->MineNum;
+    for(int i=1;i<y-1;i++) 
+    { 
+        if(cells[0][i]->MineNum != -1) cells[0][i]->MineNum=(cells[0][i-1]->IfMine()+cells[0][i+1]->IfMine()+cells[1][i]->IfMine()+cells[1][i-1]->IfMine()+cells[1][i+1]->IfMine());
+        if(cells[x-1][i]->MineNum != -1) cells[x-1][i]->MineNum=(cells[x-1][i-1]->IfMine()+cells[x-1][i+1]->IfMine()+cells[x-2][i]->IfMine()+cells[x-2][i-1]->IfMine()+cells[x-2][i+1]->IfMine());
+    }
+    for(int i=1;i<x-1;i++)
+    {
+        if(cells[i][0]->MineNum != -1) cells[i][0]->MineNum=(cells[i-1][0]->IfMine()+cells[i+1][0]->IfMine()+cells[i][1]->IfMine()+cells[i-1][1]->IfMine()+cells[i+1][1]->IfMine());
+        if(cells[i][y-1]->MineNum != -1) cells[i][y-1]->MineNum=(cells[i-1][y-1]->IfMine()+cells[i+1][y-1]->IfMine()+cells[i][y-2]->IfMine()+cells[i-1][y-2]->IfMine()+cells[i+1][y-2]->IfMine());
+    }
+    for(int i=1;i<x-1;i++)
+        for(int j=1;j<y-1;j++)
+        {
+            if(cells[i][j]->MineNum != -1)
+            {
+                cells[i][j]->MineNum=cells[i-1][j-1]->IfMine()+cells[i-1][j]->IfMine()+cells[i-1][j+1]->IfMine()+cells[i][j-1]->IfMine()+cells[i][j+1]->IfMine()
+                +cells[i+1][j-1]->IfMine()+cells[i+1][j]->IfMine()+cells[i+1][j+1]->IfMine();
+            }
+        }   
+}
+
+
+
 void GraphicsScene::mousePressEvent(QGraphicsSceneMouseEvent  *event)
 {
-    //std::cout<<"ok2!"<<std::endl;
     QGraphicsScene::mousePressEvent(event);
 }
 void GraphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent  *event)

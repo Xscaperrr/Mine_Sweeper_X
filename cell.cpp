@@ -1,15 +1,42 @@
 // #include "cell.h"
 #include "graphicsscene.h"
 
-Cell::Cell(qreal x,qreal y)
+char Cell::row=9;
+char Cell::column=9;
+char Cell::nc=1;
+char Cell::nr=1;
+char Cell::pix=50;
+
+Cell::Cell(char x):Cell((nr-1)*pix,(nc-1)*pix,x)
 {
-    MineNum = -2;
+    if(nr==row)
+    {
+        nr=1;
+        nc++;
+    }
+    else
+    {
+        nr++;
+    }
+}
+Cell::Cell(qreal x,qreal y,char k)//构造函数
+{
+    MineNum = k;
+    status=CellStatus::ini;
     Henso(CellStatus::ini);
     setPos(x,y);
 }
 Cell::~Cell()
 {
 };
+void Cell::SwapMine(Cell& x)
+{
+    if(MineNum!=-1 and x.MineNum!=-1) return;
+    else 
+    {
+        std::swap(MineNum,x.MineNum);
+    }
+}
 
 void Cell::Henso(CellStatus NewStatus)
 {
@@ -30,6 +57,10 @@ void Cell::Henso(CellStatus NewStatus)
     case CellStatus::bomb:
         status=CellStatus::bomb;
         setPixmap(*GraphicsScene::bomb);
+        break;
+    case CellStatus::blank:
+        status=CellStatus::blank;
+        setPixmap(*GraphicsScene::blank);
         break;
     case CellStatus::num:
         status=CellStatus::num;
@@ -63,9 +94,11 @@ void Cell::Henso(CellStatus NewStatus)
             break;
         }
         break;
-    default:
+    case CellStatus::kara:
+        Henso(status);
         break;
     }
+    status=NewStatus;
 }
 void Cell::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
@@ -96,7 +129,8 @@ void Cell::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
         switch (MineNum)
         {
         case -1:
-            
+            Henso(CellStatus::bomb);
+            qDebug()<<"bomb";
             break;
         case 0:
             Henso(CellStatus::blank);            
@@ -113,4 +147,10 @@ void Cell::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
             break;
         }
     }
+}
+
+char Cell::IfMine()
+{
+    if(MineNum==-1) return 1;
+    else return 0;
 }

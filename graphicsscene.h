@@ -3,6 +3,11 @@
 
 #include <QGraphicsScene>
 // #include <QGraphicsSceneMouseEvent>  
+#include <vector>
+#include <random>
+#include <ctime>
+#include <QDebug>
+
 #include "cell.h"
 
 class GraphicsScene : public QGraphicsScene
@@ -12,8 +17,13 @@ public:
     GraphicsScene(QObject *parent = nullptr);
     void mousePressEvent(QGraphicsSceneMouseEvent  *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent  *event);
+    void MineBlockSet(int x=9,int y=9);
     ~GraphicsScene();
 
+    int mines;
+    std::vector<std::vector<Cell*>> cells;
+    std::vector<Cell*> cell_1d;
+    
     static QPixmap *blank;
     static QPixmap *flag;
     static QPixmap *bomb ;

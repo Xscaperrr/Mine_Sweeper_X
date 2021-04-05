@@ -8,7 +8,7 @@ MainWindow::MainWindow(QWidget *parent)
       menubar(new QMenuBar(this))
 
 {
-    resize(1600,900);
+    resize(455,480);
     setCentralWidget(view);
     setMenuBar(menubar);
     menus.push_back(new QMenu("设置"));
@@ -24,8 +24,6 @@ MainWindow::MainWindow(QWidget *parent)
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
     QMainWindow::mousePressEvent(event);
-    // std::cout<<"ojbk!"<<std::endl;
-
 }
 void MainWindow::mouseReleaseEvent(QMouseEvent *event)
 {
@@ -36,9 +34,9 @@ MainWindow::~MainWindow()
 {
 }
 
-GraphicsView::GraphicsView(QGraphicsScene *scene,QWidget *parent)
+GraphicsView::GraphicsView(QGraphicsScene *scene,QWidget *parent): QGraphicsView(scene,parent)
 {
-    setScene(scene);setParent(parent);
+    //QGraphicsView::setAlignment(Qt::AlignLeft | Qt::AlignTop);
 }
 void GraphicsView::mousePressEvent(QMouseEvent *event)
 {

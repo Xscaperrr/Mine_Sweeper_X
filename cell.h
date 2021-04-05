@@ -3,7 +3,7 @@
 
 #include <QGraphicsPixmapItem>
 #include <QGraphicsSceneMouseEvent>  
-// #include <iostream>
+#include <iostream>
 
 enum class CellStatus:char
 {
@@ -19,25 +19,15 @@ enum class CellStatus:char
 class Cell : public QGraphicsPixmapItem 
 {   
 public:
-    // static QPixmap *blank;
-    // static QPixmap flag;
-    // static QPixmap exp ;
-    // static QPixmap num1;
-    // static QPixmap num2;
-    // static QPixmap num3;
-    // static QPixmap num4;
-    // static QPixmap num5;
-    // static QPixmap num6;
-    // static QPixmap num7;
-    // static QPixmap num8;
-    // static QPixmap num9;
-
+    static char row,column,nr,nc,pix;//目标行列数，现在的行列数,像素
 
     CellStatus status;
     char MineNum;//-2未处理,-1雷，0空，1-8周边雷数
     
-    Cell(qreal x,qreal y);
+    Cell(char x=-1);
+    Cell(qreal x,qreal y,char k);
 
+    void SwapMine(Cell& x);
     //改变status及外表
     void Henso(CellStatus NewStatus=CellStatus::kara);
    
@@ -46,6 +36,7 @@ public:
 
     //鼠标释放
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
+    char IfMine();
     ~Cell();
 };
 
