@@ -15,6 +15,11 @@ QPixmap * GraphicsScene::num7=nullptr;
 QPixmap * GraphicsScene::num8=nullptr;
 QPixmap * GraphicsScene::num9=nullptr;
 
+std::vector<std::vector<Cell*>> GraphicsScene::cells;
+
+char GraphicsScene::row=9;
+char GraphicsScene::column=9;
+
 GraphicsScene::GraphicsScene(QObject *parent) : QGraphicsScene(parent)
 {
     blank=new QPixmap("://images/blank.png");  
@@ -32,22 +37,15 @@ GraphicsScene::GraphicsScene(QObject *parent) : QGraphicsScene(parent)
     num8=new QPixmap("://images/8.png");
 
     mines=10;
-    //setSceneRect(0,0,1600,900);
-    // for(int i=0;i<9;i++)
-    //     for(int j=0;j<9;j++)
-    //     {
-    //         a=new Cell(50*i,50*j);
-    //         addItem(a);
-    //     }
     cells.resize(9);
     MineBlockSet();
 }
 
 void GraphicsScene::MineBlockSet(int x,int y)
 {
+    std::vector<Cell*> cell_1d;
     int count=0;
     int ifm=-1;
-    qDebug()<<'?';
     for(int i=0;i<x;i++) 
         for(int j=0;j<y;j++)
         {
@@ -57,7 +55,6 @@ void GraphicsScene::MineBlockSet(int x,int y)
             addItem(cells[i].back());
             count++;
         }
-    count=0;
     //std::default_random_engine e(std::time(0));
     std::default_random_engine e;
     for(int i=0;i<x*y;i++)
@@ -103,6 +100,17 @@ void GraphicsScene::mousePressEvent(QGraphicsSceneMouseEvent  *event)
 void GraphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent  *event)
 {
     QGraphicsScene::mouseReleaseEvent(event);
+}
+
+void GraphicsScene::BlankProcess(int x,int y)
+{
+    cells[x-1][y-1]->Henso(CellStatus::blank);
+    //qDebug()<<x<<' '<<y;
+    for (int i=-1;i<2;i++)
+        for (int j=-1;j<2;j++)
+            if((x-1+i>=0)&&(x-1+i<row)&&(y-1+j>=0)&&(y-1+j<column)) 
+                cells[x-1+i][y-1+j]->RightRelease();
+                //qDebug()<<x-1+i<<' '<<y-1+j;
 }
 GraphicsScene::~GraphicsScene()
 {

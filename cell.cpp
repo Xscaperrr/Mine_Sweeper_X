@@ -1,15 +1,16 @@
 // #include "cell.h"
 #include "graphicsscene.h"
 
-char Cell::row=9;
-char Cell::column=9;
+// char Cell::row=9;
+// char Cell::column=9;
 char Cell::nc=1;
 char Cell::nr=1;
 char Cell::pix=50;
 
 Cell::Cell(char x):Cell((nr-1)*pix,(nc-1)*pix,x)
 {
-    if(nr==row)
+    nx=nc;ny=nr;
+    if(nr==GraphicsScene::row)
     {
         nr=1;
         nc++;
@@ -126,29 +127,61 @@ void Cell::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     }
     else
     {
-        switch (MineNum)
-        {
-        case -1:
-            Henso(CellStatus::bomb);
-            qDebug()<<"bomb";
-            break;
-        case 0:
-            Henso(CellStatus::blank);            
-            break;
-        case 1:;
-        case 2:;
-        case 3:;
-        case 4:;
-        case 5:;
-        case 6:;
-        case 7:;
-        case 8:Henso(CellStatus::num);
-        default:
-            break;
-        }
+        RightRelease();
+        // switch (MineNum)
+        // {
+        // case -1:
+        //     Henso(CellStatus::bomb);
+        //     break;
+        // case 0:
+        //     //Henso(CellStatus::blank);            
+        //     GraphicsScene::BlankProcess(nx,ny);
+        //     break;
+        // case 1:;
+        // case 2:;
+        // case 3:;
+        // case 4:;
+        // case 5:;
+        // case 6:;
+        // case 7:;
+        // case 8:
+        //     Henso(CellStatus::num);
+        //     break;
+        // default:
+        //     qDebug()<<"error!!!!!";
+        //     break;
+        // }
     }
 }
-
+void Cell::RightRelease()
+{
+    if(status == CellStatus::ini)
+    {
+        switch (MineNum)
+            {
+            case -1:
+                Henso(CellStatus::bomb);
+                break;
+            case 0:
+                //Henso(CellStatus::blank);            
+                GraphicsScene::BlankProcess(nx,ny);
+                break;
+            case 1:;
+            case 2:;
+            case 3:;
+            case 4:;
+            case 5:;
+            case 6:;
+            case 7:;
+            case 8:
+                Henso(CellStatus::num);
+                break;
+            default:
+                qDebug()<<"error!!!!!";
+                break;
+            }
+    }
+}
 char Cell::IfMine()
 {
     if(MineNum==-1) return 1;

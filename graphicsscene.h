@@ -17,12 +17,14 @@ public:
     GraphicsScene(QObject *parent = nullptr);
     void mousePressEvent(QGraphicsSceneMouseEvent  *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent  *event);
-    void MineBlockSet(int x=9,int y=9);
+    void MineBlockSet(int x=row,int y=column);
+    static void BlankProcess(int x,int y);
     ~GraphicsScene();
 
     int mines;
-    std::vector<std::vector<Cell*>> cells;
-    std::vector<Cell*> cell_1d;
+    static char row,column;
+    static std::vector<std::vector<Cell*>> cells;
+    //std::vector<Cell*> cell_1d;
     
     static QPixmap *blank;
     static QPixmap *flag;

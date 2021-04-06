@@ -19,11 +19,11 @@ enum class CellStatus:char
 class Cell : public QGraphicsPixmapItem 
 {   
 public:
-    static char row,column,nr,nc,pix;//目标行列数，现在的行列数,像素
+    static char nr,nc,pix;//现在的行列数,像素
 
     CellStatus status;
-    char MineNum;//-2未处理,-1雷，0空，1-8周边雷数
-    
+    char MineNum;//-1雷，0空，1-8周边雷数
+    char nx,ny;//记录是第几行第几个
     Cell(char x=-1);
     Cell(qreal x,qreal y,char k);
 
@@ -36,6 +36,8 @@ public:
 
     //鼠标释放
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
+
+    void RightRelease();
     char IfMine();
     ~Cell();
 };
