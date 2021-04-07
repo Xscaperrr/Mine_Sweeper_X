@@ -20,6 +20,17 @@ std::vector<std::vector<Cell*>> GraphicsScene::cells;
 char GraphicsScene::row=9;
 char GraphicsScene::column=9;
 
+QVector<QPair<int,int>> RoundStep
+                        {
+                            QPair<int,int>(-1,-1),
+                            QPair<int,int>(-1,-0),
+                            QPair<int,int>(-1,1),
+                            QPair<int,int>(0,-1),
+                            QPair<int,int>(0,1),
+                            QPair<int,int>(1,-1),
+                            QPair<int,int>(1,0),
+                            QPair<int,int>(1,1)
+                        };
 GraphicsScene::GraphicsScene(QObject *parent) : QGraphicsScene(parent)
 {
     blank=new QPixmap("://images/blank.png");  
@@ -37,7 +48,7 @@ GraphicsScene::GraphicsScene(QObject *parent) : QGraphicsScene(parent)
     num8=new QPixmap("://images/8.png");
 
     mines=10;
-    cells.resize(9);
+    cells.resize(row+2);//哨兵加入
     MineBlockSet();
 }
 
@@ -47,52 +58,76 @@ void GraphicsScene::MineBlockSet(int x,int y)
     QVector<Cell*> cell_1d;
     int count=0;
     int ifm=-1;
-    for(int i=0;i<x;i++) 
-        for(int j=0;j<y;j++)
+    for(int i=0;i<=x+1;i++) 
+        for(int j=0;j<=y+1;j++)
         {
-            if(count>=mines) ifm=0;
-            cells[i].push_back(new Cell(ifm));
-            cell_1d.push_back(cells[i].back());
-            addItem(cells[i].back());
-            count++;
+            if(i>=1 && i<=row && j>=1 && j<=column)
+            {
+                if(count>=mines) ifm=0;
+                cells[i].push_back(new Cell(ifm));
+                cell_1d.push_back(cells[i].back());
+                addItem(cells[i].back());
+                count++;
+            }
+            else cells[i].push_back(new Cell(CellStatus::kara));
         }
+
     std::default_random_engine e(std::time(0));
     //std::default_random_engine e;
+
     for(int i=0;i<x*y;i++)
     {
         std::uniform_int_distribution<int> u(i,x*y-1);
         cell_1d[i]->SwapMine(*cell_1d[u(e)]);
     }
-    if(cells[0][0]->MineNum != -1) cells[0][0]->MineNum=cells[0][1]->IfMine()+cells[1][0]->IfMine()+cells[1][1]->IfMine();
-    //qDebug()<<(int)cells[0][0]->MineNum;
-    if(cells[0][y-1]->MineNum != -1) cells[0][y-1]->MineNum=(cells[0][y-2]->IfMine()+cells[1][y-1]->IfMine()+cells[1][y-2]->IfMine());
-    //qDebug()<<(int)cells[0][y-1]->MineNum;
-    if(cells[x-1][0]->MineNum != -1) cells[x-1][0]->MineNum=(cells[x-1][1]->IfMine()+cells[x-2][0]->IfMine()+cells[x-2][1]->IfMine());
-    //qDebug()<<(int)cells[x-1][0]->MineNum;
-    if(cells[x-1][y-1]->MineNum != -1) cells[x-1][y-1]->MineNum=(cells[x-2][y-1]->IfMine()+cells[x-1][y-2]->IfMine()+cells[x-2][y-2]->IfMine());
-    //qDebug()<<(int)cells[x-1][y-1]->MineNum;
-    for(int i=1;i<y-1;i++) 
-    { 
-        if(cells[0][i]->MineNum != -1) cells[0][i]->MineNum=(cells[0][i-1]->IfMine()+cells[0][i+1]->IfMine()+cells[1][i]->IfMine()+cells[1][i-1]->IfMine()+cells[1][i+1]->IfMine());
-        if(cells[x-1][i]->MineNum != -1) cells[x-1][i]->MineNum=(cells[x-1][i-1]->IfMine()+cells[x-1][i+1]->IfMine()+cells[x-2][i]->IfMine()+cells[x-2][i-1]->IfMine()+cells[x-2][i+1]->IfMine());
-    }
-    for(int i=1;i<x-1;i++)
-    {
-        if(cells[i][0]->MineNum != -1) cells[i][0]->MineNum=(cells[i-1][0]->IfMine()+cells[i+1][0]->IfMine()+cells[i][1]->IfMine()+cells[i-1][1]->IfMine()+cells[i+1][1]->IfMine());
-        if(cells[i][y-1]->MineNum != -1) cells[i][y-1]->MineNum=(cells[i-1][y-1]->IfMine()+cells[i+1][y-1]->IfMine()+cells[i][y-2]->IfMine()+cells[i-1][y-2]->IfMine()+cells[i+1][y-2]->IfMine());
-    }
-    for(int i=1;i<x-1;i++)
-        for(int j=1;j<y-1;j++)
-        {
-            if(cells[i][j]->MineNum != -1)
+
+    for(int i=1;i<=x;i++)
+        for(int j=1;j<=y;j++)
+            if(cells[i][j]->IfMine() != 1)
             {
-                cells[i][j]->MineNum=cells[i-1][j-1]->IfMine()+cells[i-1][j]->IfMine()+cells[i-1][j+1]->IfMine()+cells[i][j-1]->IfMine()+cells[i][j+1]->IfMine()
-                +cells[i+1][j-1]->IfMine()+cells[i+1][j]->IfMine()+cells[i+1][j+1]->IfMine();
+                auto r=RoundCell(cells[i][j]);
+                for(auto& c:r) cells[i][j]->MineNum+=c->IfMine();
             }
-        }   
+
+    // if(cells[0][0]->MineNum != -1) cells[0][0]->MineNum=cells[0][1]->IfMine()+cells[1][0]->IfMine()+cells[1][1]->IfMine();
+    // //qDebug()<<(int)cells[0][0]->MineNum;
+    // if(cells[0][y-1]->MineNum != -1) cells[0][y-1]->MineNum=(cells[0][y-2]->IfMine()+cells[1][y-1]->IfMine()+cells[1][y-2]->IfMine());
+    // //qDebug()<<(int)cells[0][y-1]->MineNum;
+    // if(cells[x-1][0]->MineNum != -1) cells[x-1][0]->MineNum=(cells[x-1][1]->IfMine()+cells[x-2][0]->IfMine()+cells[x-2][1]->IfMine());
+    // //qDebug()<<(int)cells[x-1][0]->MineNum;
+    // if(cells[x-1][y-1]->MineNum != -1) cells[x-1][y-1]->MineNum=(cells[x-2][y-1]->IfMine()+cells[x-1][y-2]->IfMine()+cells[x-2][y-2]->IfMine());
+    // //qDebug()<<(int)cells[x-1][y-1]->MineNum;
+    // for(int i=1;i<y-1;i++) 
+    // { 
+    //     if(cells[0][i]->MineNum != -1) cells[0][i]->MineNum=(cells[0][i-1]->IfMine()+cells[0][i+1]->IfMine()+cells[1][i]->IfMine()+cells[1][i-1]->IfMine()+cells[1][i+1]->IfMine());
+    //     if(cells[x-1][i]->MineNum != -1) cells[x-1][i]->MineNum=(cells[x-1][i-1]->IfMine()+cells[x-1][i+1]->IfMine()+cells[x-2][i]->IfMine()+cells[x-2][i-1]->IfMine()+cells[x-2][i+1]->IfMine());
+    // }
+    // for(int i=1;i<x-1;i++)
+    // {
+    //     if(cells[i][0]->MineNum != -1) cells[i][0]->MineNum=(cells[i-1][0]->IfMine()+cells[i+1][0]->IfMine()+cells[i][1]->IfMine()+cells[i-1][1]->IfMine()+cells[i+1][1]->IfMine());
+    //     if(cells[i][y-1]->MineNum != -1) cells[i][y-1]->MineNum=(cells[i-1][y-1]->IfMine()+cells[i+1][y-1]->IfMine()+cells[i][y-2]->IfMine()+cells[i-1][y-2]->IfMine()+cells[i+1][y-2]->IfMine());
+    // }
+    // for(int i=1;i<x-1;i++)
+    //     for(int j=1;j<y-1;j++)
+    //     {
+    //         if(cells[i][j]->MineNum != -1)
+    //         {
+    //             cells[i][j]->MineNum=cells[i-1][j-1]->IfMine()+cells[i-1][j]->IfMine()+cells[i-1][j+1]->IfMine()+cells[i][j-1]->IfMine()+cells[i][j+1]->IfMine()
+    //             +cells[i+1][j-1]->IfMine()+cells[i+1][j]->IfMine()+cells[i+1][j+1]->IfMine();
+    //         }
+    //     }   
 }
 
-
+QVector<Cell*> GraphicsScene::RoundCell(Cell* c)//获取周围的有效Cell的指针数组
+{
+    QVector<Cell*> res;
+    for(auto& p:RoundStep)
+    {
+        if(cells[c->nx+p.first][c->ny+p.second]->status != CellStatus::kara)
+        res.push_back(cells[c->nx+p.first][c->ny+p.second]);
+    }
+    return res;
+}
 
 void GraphicsScene::mousePressEvent(QGraphicsSceneMouseEvent  *event)
 {
@@ -105,11 +140,9 @@ void GraphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent  *event)
 
 void GraphicsScene::BlankProcess(int x,int y)
 {
-    cells[x-1][y-1]->Henso(CellStatus::blank);
-    for (int i=-1;i<2;i++)
-        for (int j=-1;j<2;j++)
-            if(!((i==0)&&(j==0))&&(x-1+i>=0)&&(x-1+i<row)&&(y-1+j>=0)&&(y-1+j<column)) 
-                cells[x-1+i][y-1+j]->RightRelease();
+    cells[x][y]->Henso(CellStatus::blank);
+   auto r=RoundCell(cells[x][y]);
+   for(auto& c:r) c->RightRelease();
 }
 
 void GraphicsScene::AutoFlag()

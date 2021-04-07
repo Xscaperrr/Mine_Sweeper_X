@@ -27,6 +27,10 @@ Cell::Cell(qreal x,qreal y,char k)//构造函数
     Henso(CellStatus::ini);
     setPos(x,y);
 }
+Cell::Cell(CellStatus s)
+{
+    status=CellStatus::kara;
+}
 Cell::~Cell()
 {
 };

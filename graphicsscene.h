@@ -19,6 +19,7 @@ public:
     void mouseReleaseEvent(QGraphicsSceneMouseEvent  *event);
     void MineBlockSet(int x=row,int y=column);
     void AutoFlag();
+    static QVector<Cell*> RoundCell(Cell* c);
     static void BlankProcess(int x,int y);
     ~GraphicsScene();
 
@@ -26,7 +27,7 @@ public:
     static char row,column;
     static std::vector<std::vector<Cell*>> cells;
     //std::vector<Cell*> cell_1d;
-    
+    //static QVector<QPair<int,int>> RoundStep;
     static QPixmap *blank;
     static QPixmap *flag;
     static QPixmap *bomb ;

@@ -26,7 +26,7 @@ public:
     char nx,ny;//记录是第几行第几个
     Cell(char x=-1);
     Cell(qreal x,qreal y,char k);
-
+    Cell(CellStatus s);
     void SwapMine(Cell& x);
     //改变status及外表
     void Henso(CellStatus NewStatus=CellStatus::kara);

@@ -15,8 +15,9 @@ MainWindow::MainWindow(QWidget *parent)
     menus.push_back(new QMenu("作弊",this));//1
 
     //for(auto& i:menus) actions.push_back(*(new std::vector<QAction*>));
-    for(auto& i:menus) actions.push_back(std::vector<QAction*>(0));
-
+    //for(auto& i:menus) actions.push_back(std::vector<QAction*>(0));
+    actions.resize(menus.size());
+    
     actions[0].push_back(new QAction("难度",this));
     actions[1].push_back(new QAction("标旗正确校验",this));
     actions[1].push_back(new QAction("自动标旗",this));
