@@ -33,7 +33,7 @@ public:
     GraphicsView *view;
     QMenuBar *menubar;
     std::vector<QMenu*> menus;
-    std::vector<QAction*> actions;
+    std::vector<std::vector<QAction*>> actions;
 
     MainWindow(QWidget *parent = nullptr);
     void mousePressEvent(QMouseEvent *event);

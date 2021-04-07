@@ -18,6 +18,7 @@ public:
     void mousePressEvent(QGraphicsSceneMouseEvent  *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent  *event);
     void MineBlockSet(int x=row,int y=column);
+    void AutoFlag();
     static void BlankProcess(int x,int y);
     ~GraphicsScene();
 

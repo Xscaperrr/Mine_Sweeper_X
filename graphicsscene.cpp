@@ -43,7 +43,8 @@ GraphicsScene::GraphicsScene(QObject *parent) : QGraphicsScene(parent)
 
 void GraphicsScene::MineBlockSet(int x,int y)
 {
-    std::vector<Cell*> cell_1d;
+    //std::vector<Cell*> cell_1d;
+    QVector<Cell*> cell_1d;
     int count=0;
     int ifm=-1;
     for(int i=0;i<x;i++) 
@@ -55,8 +56,8 @@ void GraphicsScene::MineBlockSet(int x,int y)
             addItem(cells[i].back());
             count++;
         }
-    //std::default_random_engine e(std::time(0));
-    std::default_random_engine e;
+    std::default_random_engine e(std::time(0));
+    //std::default_random_engine e;
     for(int i=0;i<x*y;i++)
     {
         std::uniform_int_distribution<int> u(i,x*y-1);
@@ -105,13 +106,35 @@ void GraphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent  *event)
 void GraphicsScene::BlankProcess(int x,int y)
 {
     cells[x-1][y-1]->Henso(CellStatus::blank);
-    //qDebug()<<x<<' '<<y;
     for (int i=-1;i<2;i++)
         for (int j=-1;j<2;j++)
-            if((x-1+i>=0)&&(x-1+i<row)&&(y-1+j>=0)&&(y-1+j<column)) 
+            if(!((i==0)&&(j==0))&&(x-1+i>=0)&&(x-1+i<row)&&(y-1+j>=0)&&(y-1+j<column)) 
                 cells[x-1+i][y-1+j]->RightRelease();
-                //qDebug()<<x-1+i<<' '<<y-1+j;
 }
+
+void GraphicsScene::AutoFlag()
+{
+    QVector<Cell*> ActiveNum;
+    for(auto x=0;x<row;x++)
+        for(auto y=0;y<column;y++)
+            if(cells[x][y]->status == CellStatus::num)
+            {
+                bool activity=false;
+                for (int i=-1;i<2;i++)
+                    for (int j=-1;j<2;j++)
+                        if(!((i==0)&&(j==0))&&(x-1+i>=0)&&(x-1+i<row)&&(y-1+j>=0)&&(y-1+j<column))
+                        {
+                            if(cells[i][j]->status==CellStatus::ini) activity=true;
+                        }
+                if (activity) ActiveNum.push_back(cells[x][y]);
+            }
+    for(auto i=ActiveNum.begin();i !=ActiveNum.end();i++)
+    {
+        
+        //ActiveNum.erase(i);
+    }
+}
+
 GraphicsScene::~GraphicsScene()
 {
 }

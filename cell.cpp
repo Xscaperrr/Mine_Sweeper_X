@@ -33,10 +33,7 @@ Cell::~Cell()
 void Cell::SwapMine(Cell& x)
 {
     if(MineNum!=-1 and x.MineNum!=-1) return;
-    else 
-    {
-        std::swap(MineNum,x.MineNum);
-    }
+    else std::swap(MineNum,x.MineNum);
 }
 
 void Cell::Henso(CellStatus NewStatus)
@@ -125,33 +122,7 @@ void Cell::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
             break;
         }
     }
-    else
-    {
-        RightRelease();
-        // switch (MineNum)
-        // {
-        // case -1:
-        //     Henso(CellStatus::bomb);
-        //     break;
-        // case 0:
-        //     //Henso(CellStatus::blank);            
-        //     GraphicsScene::BlankProcess(nx,ny);
-        //     break;
-        // case 1:;
-        // case 2:;
-        // case 3:;
-        // case 4:;
-        // case 5:;
-        // case 6:;
-        // case 7:;
-        // case 8:
-        //     Henso(CellStatus::num);
-        //     break;
-        // default:
-        //     qDebug()<<"error!!!!!";
-        //     break;
-        // }
-    }
+    else RightRelease();//为了自动扩展拆分
 }
 void Cell::RightRelease()
 {
