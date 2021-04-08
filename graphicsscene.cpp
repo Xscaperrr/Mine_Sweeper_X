@@ -72,8 +72,8 @@ void GraphicsScene::MineBlockSet(int x,int y)
             else cells[i].push_back(new Cell(CellStatus::kara));
         }
 
-    std::default_random_engine e(std::time(0));
-    //std::default_random_engine e;
+    //std::default_random_engine e(std::time(0));
+    std::default_random_engine e;
 
     for(int i=0;i<x*y;i++)
     {
@@ -175,13 +175,16 @@ void GraphicsScene::AutoFlag()
                     if(c->status==CellStatus::ini) activity++;
                     if(c->status==CellStatus::flag) flags++;
                 }
+                if (activity == 0) continue;
                 if (cells[x][y]->MineNum == flags)
                 {
+                    qDebug()<<"ques "<<(int)x<<(int)y;
                     for(auto& c:r)
                         if(c->status==CellStatus::ini) c->Henso(CellStatus::question);
                 }
                 else if (activity ==cells[x][y]->MineNum - flags)
                 {
+                    qDebug()<<"flag "<<(int)x<<(int)y;
                     for(auto& c:r)
                         if(c->status==CellStatus::ini) c->Henso(CellStatus::flag);
                 }
@@ -191,8 +194,9 @@ void GraphicsScene::AutoFlag()
     while(IfFlag)
     {
         IfFlag=false;
-        for(auto i=ActiveNum.begin();i !=ActiveNum.end();i++)
+        for(auto i=ActiveNum.begin();i !=ActiveNum.end();)
         {
+            qDebug()<<"acess "<<(int)(*i)->nx<<(int)(*i)->ny;
             int activity=0;
             int flags=0;
             auto r=RoundCell(*i);
@@ -201,19 +205,48 @@ void GraphicsScene::AutoFlag()
                 if(c->status==CellStatus::ini) activity++;
                 if(c->status==CellStatus::flag) flags++;
             }
-            if ((*i)->MineNum == flags)
+            if (activity == 0)
+            {
+                qDebug()<<"release "<<(int)(*i)->nx<<(int)(*i)->ny;
+                i=ActiveNum.erase(i);
+                // if(ActiveNum.empty())
+                // {
+                //     IfFlag=false;
+                //     qDebug()<<"cancel";
+                //     break;
+                // }
+            }
+            else if ((*i)->MineNum == flags)
             {
                 IfFlag=true;
+                qDebug()<<"ques "<<(int)(*i)->nx<<(int)(*i)->ny;
+                
                 for(auto& c:r)
                     if(c->status==CellStatus::ini) c->Henso(CellStatus::question);
+
+                i=ActiveNum.erase(i);
+                // if(ActiveNum.empty())
+                // {
+                //     IfFlag=false;
+                //     break;
+                // }
             }
             else if (activity ==(*i)->MineNum - flags )
             {
                 IfFlag=true;
-                ActiveNum.erase(i);
+                qDebug()<<"flag "<<(int)(*i)->nx<<(int)(*i)->ny;
+                
+                
                 for(auto& c:r)
                     if(c->status==CellStatus::ini) c->Henso(CellStatus::flag);
+                i=ActiveNum.erase(i);
+                // if(ActiveNum.empty())
+                // {
+                //     IfFlag=false;
+                //     break;
+                // }
             }
+            else i++;
         }
     }
 }
