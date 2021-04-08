@@ -147,6 +147,19 @@ void GraphicsScene::BlankProcess(int x,int y)
    for(auto& c:r) c->RightRelease();
 }
 
+bool GraphicsScene::FlagCheck()
+{
+    for(auto x=1;x<=row;x++)
+        for(auto y=1;y<=column;y++)
+            if(cells[x][y]->status == CellStatus::flag && cells[x][y]->MineNum != -1) return false;
+    return true;
+}
+
+void GraphicsScene::FlagCheckEvent()
+{
+    if (FlagCheck()) QMessageBox::information(NULL, tr("标旗正确性检查"), tr("正确"));
+    else QMessageBox::information(NULL, tr("标旗正确性检查"), tr("不正确"));
+}
 void GraphicsScene::AutoFlag()
 {
     QList<Cell*> ActiveNum;

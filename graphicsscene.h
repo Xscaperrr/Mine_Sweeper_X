@@ -2,6 +2,7 @@
 #define GRAPHICSSCENE_H
 
 #include <QGraphicsScene>
+#include <QMessageBox>
 // #include <QGraphicsSceneMouseEvent>  
 #include <vector>
 #include <random>
@@ -19,6 +20,8 @@ public:
     void mouseReleaseEvent(QGraphicsSceneMouseEvent  *event);
     void MineBlockSet(int x=row,int y=column);
     void AutoFlag();
+    bool FlagCheck();
+    void FlagCheckEvent();
     static QVector<Cell*> RoundCell(Cell* c);
     static void BlankProcess(int x,int y);
     ~GraphicsScene();
