@@ -19,10 +19,10 @@ MainWindow::MainWindow(QWidget *parent)
     actions.resize(menus.size());
     
     actions[0].push_back(new QAction("难度",this));
-    actions[1].push_back(new QAction("标旗正确校验",this));
-    actions[1].push_back(new QAction("自动标旗",this));
+    actions[1].push_back(new QAction("标旗正确校验",this));//1 0
+    actions[1].push_back(new QAction("自动标旗",this));//1 1
 
-    
+    connect(actions[1][1],&QAction::triggered,scene,&GraphicsScene::AutoFlag);
 
     for(int i=0;i<menus.size();i++)
     {

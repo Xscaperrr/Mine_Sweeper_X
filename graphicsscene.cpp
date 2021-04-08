@@ -20,7 +20,7 @@ std::vector<std::vector<Cell*>> GraphicsScene::cells;
 char GraphicsScene::row=9;
 char GraphicsScene::column=9;
 
-QVector<QPair<int,int>> RoundStep
+const QVector<QPair<int,int>> RoundStep
                         {
                             QPair<int,int>(-1,-1),
                             QPair<int,int>(-1,-0),
@@ -88,7 +88,8 @@ void GraphicsScene::MineBlockSet(int x,int y)
                 auto r=RoundCell(cells[i][j]);
                 for(auto& c:r) cells[i][j]->MineNum+=c->IfMine();
             }
-
+            
+    //未加哨兵的朴素算法
     // if(cells[0][0]->MineNum != -1) cells[0][0]->MineNum=cells[0][1]->IfMine()+cells[1][0]->IfMine()+cells[1][1]->IfMine();
     // //qDebug()<<(int)cells[0][0]->MineNum;
     // if(cells[0][y-1]->MineNum != -1) cells[0][y-1]->MineNum=(cells[0][y-2]->IfMine()+cells[1][y-1]->IfMine()+cells[1][y-2]->IfMine());
@@ -118,7 +119,8 @@ void GraphicsScene::MineBlockSet(int x,int y)
     //     }   
 }
 
-QVector<Cell*> GraphicsScene::RoundCell(Cell* c)//获取周围的有效Cell的指针数组
+//获取周围的有效Cell的指针数组
+QVector<Cell*> GraphicsScene::RoundCell(Cell* c)
 {
     QVector<Cell*> res;
     for(auto& p:RoundStep)
@@ -147,24 +149,59 @@ void GraphicsScene::BlankProcess(int x,int y)
 
 void GraphicsScene::AutoFlag()
 {
-    QVector<Cell*> ActiveNum;
-    for(auto x=0;x<row;x++)
-        for(auto y=0;y<column;y++)
+    QList<Cell*> ActiveNum;
+    for(auto x=1;x<=row;x++)
+        for(auto y=1;y<=column;y++)
             if(cells[x][y]->status == CellStatus::num)
             {
-                bool activity=false;
-                for (int i=-1;i<2;i++)
-                    for (int j=-1;j<2;j++)
-                        if(!((i==0)&&(j==0))&&(x-1+i>=0)&&(x-1+i<row)&&(y-1+j>=0)&&(y-1+j<column))
-                        {
-                            if(cells[i][j]->status==CellStatus::ini) activity=true;
-                        }
-                if (activity) ActiveNum.push_back(cells[x][y]);
+                int activity=0;
+                int flags=0;
+                auto r=RoundCell(cells[x][y]);
+                for(auto& c:r)
+                {
+                    if(c->status==CellStatus::ini) activity++;
+                    if(c->status==CellStatus::flag) flags++;
+                }
+                if (cells[x][y]->MineNum == flags)
+                {
+                    for(auto& c:r)
+                        if(c->status==CellStatus::ini) c->Henso(CellStatus::question);
+                }
+                else if (activity ==cells[x][y]->MineNum - flags)
+                {
+                    for(auto& c:r)
+                        if(c->status==CellStatus::ini) c->Henso(CellStatus::flag);
+                }
+                else if (activity != 0) ActiveNum.push_back(cells[x][y]);
             }
-    for(auto i=ActiveNum.begin();i !=ActiveNum.end();i++)
+    bool IfFlag=true;
+    while(IfFlag)
     {
-        
-        //ActiveNum.erase(i);
+        IfFlag=false;
+        for(auto i=ActiveNum.begin();i !=ActiveNum.end();i++)
+        {
+            int activity=0;
+            int flags=0;
+            auto r=RoundCell(*i);
+            for(auto& c:r)
+            {
+                if(c->status==CellStatus::ini) activity++;
+                if(c->status==CellStatus::flag) flags++;
+            }
+            if ((*i)->MineNum == flags)
+            {
+                IfFlag=true;
+                for(auto& c:r)
+                    if(c->status==CellStatus::ini) c->Henso(CellStatus::question);
+            }
+            else if (activity ==(*i)->MineNum - flags )
+            {
+                IfFlag=true;
+                ActiveNum.erase(i);
+                for(auto& c:r)
+                    if(c->status==CellStatus::ini) c->Henso(CellStatus::flag);
+            }
+        }
     }
 }
 
