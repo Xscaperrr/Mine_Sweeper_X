@@ -11,7 +11,7 @@ MainWindow::MainWindow(QWidget *parent)
     resize(455,480);
     setCentralWidget(view);
     setMenuBar(menubar);
-    menus.push_back(new QMenu("设置",this));//0
+    menus.push_back(new QMenu("游戏",this));//0
     menus.push_back(new QMenu("作弊",this));//1
     menus.push_back(new QMenu("帮助",this));//2
 
@@ -19,13 +19,15 @@ MainWindow::MainWindow(QWidget *parent)
     //for(auto& i:menus) actions.push_back(std::vector<QAction*>(0));
     actions.resize(menus.size());
     
-    actions[0].push_back(new QAction("难度",this));
+    actions[0].push_back(new QAction("重启",this));//0 0
+    actions[0].push_back(new QAction("难度",this));//0 1
     actions[1].push_back(new QAction("标旗正确校验",this));//1 0
     actions[1].push_back(new QAction("自动标旗",this));//1 1
 
+    connect(actions[0][0],&QAction::triggered,scene,&GraphicsScene::GameRestart);
     connect(actions[1][0],&QAction::triggered,scene,&GraphicsScene::FlagCheckEvent);
     connect(actions[1][1],&QAction::triggered,scene,&GraphicsScene::AutoFlag);
-    
+
     for(int i=0;i<menus.size();i++)
     {
         menubar->addMenu(menus[i]);

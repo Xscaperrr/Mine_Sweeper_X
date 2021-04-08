@@ -162,6 +162,18 @@ void GraphicsScene::FlagCheckEvent()
     if (FlagCheck()) QMessageBox::information(NULL, tr("标旗正确性检查"), tr("正确"));
     else QMessageBox::information(NULL, tr("标旗正确性检查"), tr("不正确"));
 }
+
+void GraphicsScene::GameRestart()
+{
+    for(auto& i:cells)
+        for(auto& j:i)
+            delete j;
+    qDebug()<<"delete over";
+    cells.clear();
+    cells.resize(row+2);//哨兵加入
+    Cell::nc=Cell::nr=1;
+    MineBlockSet();
+}
 void GraphicsScene::AutoFlag()
 {
     QList<Cell*> ActiveNum;

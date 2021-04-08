@@ -22,6 +22,7 @@ public:
     void AutoFlag();
     bool FlagCheck();
     void FlagCheckEvent();
+    void GameRestart();
     static QVector<Cell*> RoundCell(Cell* c);
     static void BlankProcess(int x,int y);
     ~GraphicsScene();
