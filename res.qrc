@@ -12,6 +12,7 @@
         <file>images/explode.png</file>
         <file>images/flag.png</file>
         <file>images/initial.png</file>
+        <file>images/clickable.png</file>
         <file>images/question.png</file>
     </qresource>
 </RCC>

@@ -64,6 +64,10 @@ void Cell::Henso(CellStatus NewStatus)
         status=CellStatus::blank;
         setPixmap(*GraphicsScene::blank);
         break;
+    case CellStatus::clickable:
+        status=CellStatus::clickable;
+        setPixmap(*GraphicsScene::clickable);
+        break;
     case CellStatus::num:
         status=CellStatus::num;
         switch (MineNum)
@@ -130,7 +134,7 @@ void Cell::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 }
 void Cell::RightRelease()
 {
-    if(status == CellStatus::ini)
+    if(status == CellStatus::ini || status == CellStatus::clickable)
     {
         switch (MineNum)
             {

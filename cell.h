@@ -13,6 +13,7 @@ enum class CellStatus:char
     flag,//旗
     blank,//空格
     question,//问号
+    clickable,//通过作弊确认为非雷的状态
     kara  //空，非状态，表示不传参数
 };
 

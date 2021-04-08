@@ -36,6 +36,7 @@ public:
     static QPixmap *bomb ;
     static QPixmap *ini ;
     static QPixmap *question;
+    static QPixmap *clickable;
     static QPixmap *num1;
     static QPixmap *num2;
     static QPixmap *num3;

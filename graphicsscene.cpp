@@ -5,6 +5,7 @@ QPixmap * GraphicsScene::flag=nullptr;
 QPixmap * GraphicsScene::bomb=nullptr;
 QPixmap * GraphicsScene::ini=nullptr;
 QPixmap * GraphicsScene::question=nullptr;
+QPixmap * GraphicsScene::clickable=nullptr;
 QPixmap * GraphicsScene::num1=nullptr;
 QPixmap * GraphicsScene::num2=nullptr;
 QPixmap * GraphicsScene::num3=nullptr;
@@ -37,6 +38,7 @@ GraphicsScene::GraphicsScene(QObject *parent) : QGraphicsScene(parent)
     flag=new QPixmap("://images/flag.png");
     ini=new QPixmap("://images/initial.png");
     question=new QPixmap("://images/question.png");
+    clickable=new QPixmap("://images/clickable.png");
     bomb=new QPixmap("://images/explode.png");
     num1=new QPixmap("://images/1.png");
     num2=new QPixmap("://images/2.png");
@@ -72,8 +74,8 @@ void GraphicsScene::MineBlockSet(int x,int y)
             else cells[i].push_back(new Cell(CellStatus::kara));
         }
 
-    //std::default_random_engine e(std::time(0));
-    std::default_random_engine e;
+    std::default_random_engine e(std::time(0));
+    //std::default_random_engine e;
 
     for(int i=0;i<x*y;i++)
     {
@@ -180,7 +182,7 @@ void GraphicsScene::AutoFlag()
                 {
                     qDebug()<<"ques "<<(int)x<<(int)y;
                     for(auto& c:r)
-                        if(c->status==CellStatus::ini) c->Henso(CellStatus::question);
+                        if(c->status==CellStatus::ini) c->Henso(CellStatus::clickable);
                 }
                 else if (activity ==cells[x][y]->MineNum - flags)
                 {
@@ -222,7 +224,7 @@ void GraphicsScene::AutoFlag()
                 qDebug()<<"ques "<<(int)(*i)->nx<<(int)(*i)->ny;
                 
                 for(auto& c:r)
-                    if(c->status==CellStatus::ini) c->Henso(CellStatus::question);
+                    if(c->status==CellStatus::ini) c->Henso(CellStatus::clickable);
 
                 i=ActiveNum.erase(i);
                 // if(ActiveNum.empty())
