@@ -38,7 +38,7 @@ public:
     //鼠标释放
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
 
-    void RightRelease();
+    void LeftRelease();
     char IfMine();
     ~Cell();
 };

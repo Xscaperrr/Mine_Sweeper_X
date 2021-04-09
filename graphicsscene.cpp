@@ -20,6 +20,7 @@ std::vector<std::vector<Cell*>> GraphicsScene::cells;
 
 char GraphicsScene::row=9;
 char GraphicsScene::column=9;
+int GraphicsScene::LeftMineNum=10;
 
 const QVector<QPair<int,int>> RoundStep
                         {
@@ -49,7 +50,7 @@ GraphicsScene::GraphicsScene(QObject *parent) : QGraphicsScene(parent)
     num7=new QPixmap("://images/7.png");
     num8=new QPixmap("://images/8.png");
 
-    mines=10;
+    TotalMineNum=10;
     cells.resize(row+2);//哨兵加入
     MineBlockSet();
 }
@@ -65,7 +66,7 @@ void GraphicsScene::MineBlockSet(int x,int y)
         {
             if(i>=1 && i<=row && j>=1 && j<=column)
             {
-                if(count>=mines) ifm=0;
+                if(count>=TotalMineNum) ifm=0;
                 cells[i].push_back(new Cell(ifm));
                 cell_1d.push_back(cells[i].back());
                 addItem(cells[i].back());
@@ -146,7 +147,7 @@ void GraphicsScene::BlankProcess(int x,int y)
 {
     cells[x][y]->Henso(CellStatus::blank);
    auto r=RoundCell(cells[x][y]);
-   for(auto& c:r) c->RightRelease();
+   for(auto& c:r) c->LeftRelease();
 }
 
 bool GraphicsScene::FlagCheck()

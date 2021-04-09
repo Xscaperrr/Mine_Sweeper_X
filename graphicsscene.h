@@ -27,8 +27,9 @@ public:
     static void BlankProcess(int x,int y);
     ~GraphicsScene();
 
-    int mines;
+    int TotalMineNum;
     static char row,column;
+    static int LeftMineNum;
     static std::vector<std::vector<Cell*>> cells;
     //std::vector<Cell*> cell_1d;
     //static QVector<QPair<int,int>> RoundStep;

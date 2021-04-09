@@ -7,6 +7,8 @@
 // #include <QGraphicsScene>
 #include <QGraphicsItem>
 // #include <QGraphicsSceneMouseEvent>  
+#include <QStatusBar>
+#include <QLabel>
 #include <QMenuBar>
 #include <QAction>
 #include <QGraphicsItem>
@@ -32,9 +34,10 @@ public:
     GraphicsScene *scene;
     GraphicsView *view;
     QMenuBar *menubar;
+    QStatusBar *statusbar;
     std::vector<QMenu*> menus;
     std::vector<std::vector<QAction*>> actions;
-
+    static QLabel *Diffculty,*TotalMines,*LeftMines;
     MainWindow(QWidget *parent = nullptr);
     void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
