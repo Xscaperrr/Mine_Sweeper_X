@@ -57,7 +57,6 @@ GraphicsScene::GraphicsScene(QObject *parent) : QGraphicsScene(parent)
 
 void GraphicsScene::MineBlockSet(int x,int y)
 {
-    //std::vector<Cell*> cell_1d;
     QVector<Cell*> cell_1d;
     int count=0;
     int ifm=-1;
@@ -75,8 +74,10 @@ void GraphicsScene::MineBlockSet(int x,int y)
             else cells[i].push_back(new Cell(CellStatus::kara));
         }
 
-    std::default_random_engine e(std::time(0));
-    //std::default_random_engine e;
+    std::default_random_engine e //便于调试取消真随机
+    (std::time(0))
+    ;
+    
 
     for(int i=0;i<x*y;i++)
     {
@@ -91,35 +92,6 @@ void GraphicsScene::MineBlockSet(int x,int y)
                 auto r=RoundCell(cells[i][j]);
                 for(auto& c:r) cells[i][j]->MineNum+=c->IfMine();
             }
-            
-    //未加哨兵的朴素算法
-    // if(cells[0][0]->MineNum != -1) cells[0][0]->MineNum=cells[0][1]->IfMine()+cells[1][0]->IfMine()+cells[1][1]->IfMine();
-    // //qDebug()<<(int)cells[0][0]->MineNum;
-    // if(cells[0][y-1]->MineNum != -1) cells[0][y-1]->MineNum=(cells[0][y-2]->IfMine()+cells[1][y-1]->IfMine()+cells[1][y-2]->IfMine());
-    // //qDebug()<<(int)cells[0][y-1]->MineNum;
-    // if(cells[x-1][0]->MineNum != -1) cells[x-1][0]->MineNum=(cells[x-1][1]->IfMine()+cells[x-2][0]->IfMine()+cells[x-2][1]->IfMine());
-    // //qDebug()<<(int)cells[x-1][0]->MineNum;
-    // if(cells[x-1][y-1]->MineNum != -1) cells[x-1][y-1]->MineNum=(cells[x-2][y-1]->IfMine()+cells[x-1][y-2]->IfMine()+cells[x-2][y-2]->IfMine());
-    // //qDebug()<<(int)cells[x-1][y-1]->MineNum;
-    // for(int i=1;i<y-1;i++) 
-    // { 
-    //     if(cells[0][i]->MineNum != -1) cells[0][i]->MineNum=(cells[0][i-1]->IfMine()+cells[0][i+1]->IfMine()+cells[1][i]->IfMine()+cells[1][i-1]->IfMine()+cells[1][i+1]->IfMine());
-    //     if(cells[x-1][i]->MineNum != -1) cells[x-1][i]->MineNum=(cells[x-1][i-1]->IfMine()+cells[x-1][i+1]->IfMine()+cells[x-2][i]->IfMine()+cells[x-2][i-1]->IfMine()+cells[x-2][i+1]->IfMine());
-    // }
-    // for(int i=1;i<x-1;i++)
-    // {
-    //     if(cells[i][0]->MineNum != -1) cells[i][0]->MineNum=(cells[i-1][0]->IfMine()+cells[i+1][0]->IfMine()+cells[i][1]->IfMine()+cells[i-1][1]->IfMine()+cells[i+1][1]->IfMine());
-    //     if(cells[i][y-1]->MineNum != -1) cells[i][y-1]->MineNum=(cells[i-1][y-1]->IfMine()+cells[i+1][y-1]->IfMine()+cells[i][y-2]->IfMine()+cells[i-1][y-2]->IfMine()+cells[i+1][y-2]->IfMine());
-    // }
-    // for(int i=1;i<x-1;i++)
-    //     for(int j=1;j<y-1;j++)
-    //     {
-    //         if(cells[i][j]->MineNum != -1)
-    //         {
-    //             cells[i][j]->MineNum=cells[i-1][j-1]->IfMine()+cells[i-1][j]->IfMine()+cells[i-1][j+1]->IfMine()+cells[i][j-1]->IfMine()+cells[i][j+1]->IfMine()
-    //             +cells[i+1][j-1]->IfMine()+cells[i+1][j]->IfMine()+cells[i+1][j+1]->IfMine();
-    //         }
-    //     }   
 }
 
 //获取周围的有效Cell的指针数组
@@ -175,40 +147,41 @@ void GraphicsScene::GameRestart()
     Cell::nc=Cell::nr=1;
     MineBlockSet();
 }
+
 void GraphicsScene::AutoFlag()
 {
-    QList<Cell*> ActiveNum;
+    QList<Cell*> ActiveNum;//活跃数字队列，指周围有未翻开格子的数字格
     for(auto x=1;x<=row;x++)
         for(auto y=1;y<=column;y++)
             if(cells[x][y]->status == CellStatus::num)
             {
-                int activity=0;
-                int flags=0;
+                int activity=0;//周围的未翻开格子数
+                int flags=0;//周围的旗子数
                 auto r=RoundCell(cells[x][y]);
-                for(auto& c:r)
+                for(auto& c:r)//遍历周围格子计数
                 {
                     if(c->status==CellStatus::ini) activity++;
                     if(c->status==CellStatus::flag) flags++;
                 }
-                if (activity == 0) continue;
-                if (cells[x][y]->MineNum == flags)
+                if (activity == 0) continue;//非活跃
+                if (cells[x][y]->MineNum == flags)//所有雷已经标记完,则将其他未翻开格子标记为无雷
                 {
-                    qDebug()<<"ques "<<(int)x<<(int)y;
+                    qDebug()<<"clickable around "<<(int)x<<(int)y;
                     for(auto& c:r)
                         if(c->status==CellStatus::ini) c->Henso(CellStatus::clickable);
                 }
-                else if (activity ==cells[x][y]->MineNum - flags)
+                else if (activity ==cells[x][y]->MineNum - flags)//未翻开格子数 == 周围雷数，则全部标雷雷
                 {
-                    qDebug()<<"flag "<<(int)x<<(int)y;
+                    qDebug()<<"flag around "<<(int)x<<(int)y;
                     for(auto& c:r)
                         if(c->status==CellStatus::ini) c->Henso(CellStatus::flag);
                 }
-                else if (activity != 0) ActiveNum.push_back(cells[x][y]);
+                else ActiveNum.push_back(cells[x][y]);//活跃但无法确定周遭状态
             }
-    bool IfFlag=true;
-    while(IfFlag)
+    bool IfAct=true;//在队列的一轮遍历时是否有处理
+    while(IfAct)
     {
-        IfFlag=false;
+        IfAct=false;
         for(auto i=ActiveNum.begin();i !=ActiveNum.end();)
         {
             qDebug()<<"acess "<<(int)(*i)->nx<<(int)(*i)->ny;
@@ -220,52 +193,125 @@ void GraphicsScene::AutoFlag()
                 if(c->status==CellStatus::ini) activity++;
                 if(c->status==CellStatus::flag) flags++;
             }
-            if (activity == 0)
+            if (activity == 0)//已经不活跃
             {
                 qDebug()<<"release "<<(int)(*i)->nx<<(int)(*i)->ny;
                 i=ActiveNum.erase(i);
-                // if(ActiveNum.empty())
-                // {
-                //     IfFlag=false;
-                //     qDebug()<<"cancel";
-                //     break;
-                // }
             }
-            else if ((*i)->MineNum == flags)
+            else if ((*i)->MineNum == flags)//周围可标无雷
             {
-                IfFlag=true;
-                qDebug()<<"ques "<<(int)(*i)->nx<<(int)(*i)->ny;
+                IfAct=true;
+                qDebug()<<"clickable around "<<(int)(*i)->nx<<(int)(*i)->ny;
                 
                 for(auto& c:r)
                     if(c->status==CellStatus::ini) c->Henso(CellStatus::clickable);
 
                 i=ActiveNum.erase(i);
-                // if(ActiveNum.empty())
-                // {
-                //     IfFlag=false;
-                //     break;
-                // }
             }
-            else if (activity ==(*i)->MineNum - flags )
+            else if (activity ==(*i)->MineNum - flags )//周围可标雷
             {
-                IfFlag=true;
-                qDebug()<<"flag "<<(int)(*i)->nx<<(int)(*i)->ny;
-                
-                
+                IfAct=true;
+                qDebug()<<"flag around "<<(int)(*i)->nx<<(int)(*i)->ny;
                 for(auto& c:r)
                     if(c->status==CellStatus::ini) c->Henso(CellStatus::flag);
                 i=ActiveNum.erase(i);
-                // if(ActiveNum.empty())
-                // {
-                //     IfFlag=false;
-                //     break;
-                // }
             }
             else i++;
         }
     }
 }
+void GraphicsScene::CalProbability()//概率计算
+{
+    QList<Cell*> ActiveNum;//活跃数字队列，指周围有未翻开格子的数字格
+    for(auto x=1;x<=row;x++)
+        for(auto y=1;y<=column;y++)
+            if(cells[x][y]->status == CellStatus::num)
+            {
+                int activity=0;//周围的未翻开格子数
+                int flags=0;//周围的旗子数
+                auto r=RoundCell(cells[x][y]);
+                for(auto& c:r)//遍历周围格子计数
+                {
+                    if(c->status==CellStatus::ini) activity++;
+                    if(c->status==CellStatus::flag) flags++;
+                }
+                if (activity == 0) continue;//非活跃
+                if (cells[x][y]->MineNum == flags)//所有雷已经标记完,则将其他未翻开格子标记为无雷
+                {
+                    qDebug()<<"clickable around "<<(int)x<<(int)y;
+                    for(auto& c:r)
+                        if(c->status==CellStatus::ini) c->Henso(CellStatus::clickable);
+                }
+                else if (activity ==cells[x][y]->MineNum - flags)//未翻开格子数 == 周围雷数，则全部标雷雷
+                {
+                    qDebug()<<"flag around "<<(int)x<<(int)y;
+                    for(auto& c:r)
+                        if(c->status==CellStatus::ini) c->Henso(CellStatus::flag);
+                }
+                else ActiveNum.push_back(cells[x][y]);//活跃但无法确定周遭状态
+            }
+    bool IfAct=true;//在队列的一轮遍历时是否有处理
+    while(IfAct)
+    {
+        IfAct=false;
+        for(auto i=ActiveNum.begin();i !=ActiveNum.end();)
+        {
+            qDebug()<<"acess "<<(int)(*i)->nx<<(int)(*i)->ny;
+            int activity=0;
+            int flags=0;
+            auto r=RoundCell(*i);
+            for(auto& c:r)
+            {
+                if(c->status==CellStatus::ini) activity++;
+                if(c->status==CellStatus::flag) flags++;
+            }
+            if (activity == 0)//已经不活跃
+            {
+                qDebug()<<"release "<<(int)(*i)->nx<<(int)(*i)->ny;
+                i=ActiveNum.erase(i);
+            }
+            else if ((*i)->MineNum == flags)//周围可标无雷
+            {
+                IfAct=true;
+                qDebug()<<"clickable around "<<(int)(*i)->nx<<(int)(*i)->ny;
+                
+                for(auto& c:r)
+                    if(c->status==CellStatus::ini) c->Henso(CellStatus::clickable);
 
+                i=ActiveNum.erase(i);
+            }
+            else if (activity ==(*i)->MineNum - flags )//周围可标雷
+            {
+                IfAct=true;
+                qDebug()<<"flag around "<<(int)(*i)->nx<<(int)(*i)->ny;
+                for(auto& c:r)
+                    if(c->status==CellStatus::ini) c->Henso(CellStatus::flag);
+                i=ActiveNum.erase(i);
+            }
+            else i++;
+        }
+    }
+    //简单标旗结束
+    QList<Cell*> AllNum,//全部数字格，用于回溯的错误判断
+                ActiveIni;//活跃的未翻开格，指周围有数字的未翻开格
+    int InactiveIniNum=0;//非活跃未翻开格数
+    for(auto x=1;x<=row;x++)
+        for(auto y=1;y<=column;y++)
+            if(cells[x][y]->status == CellStatus::num) AllNum.push_back(cells[x][y]);
+            else if(cells[x][y]->status == CellStatus::ini)
+            {
+                bool IfNum=false;
+                auto r=RoundCell(cells[x][y]);
+                for(auto& c:r)
+                    if(c->status==CellStatus::num)
+                    {
+                        IfNum=true;
+                        break;
+                    }
+                if(IfNum) ActiveIni.push_back(cells[x][y]);
+                else InactiveIniNum++;
+            }
+}
 GraphicsScene::~GraphicsScene()
 {
 }
