@@ -48,6 +48,8 @@ void Cell::Henso(CellStatus NewStatus)
     case CellStatus::ini:
         status=CellStatus::ini;
         setPixmap(*GraphicsScene::ini);
+        GraphicsScene::LeftMineNum ++;
+        //MainWindow::LeftMines->setText("剩余雷数:"+QString::number(GraphicsScene::LeftMineNum));//???莫名其妙加上后无法运行
         break;
     case CellStatus::flag:
         status=CellStatus::flag;
@@ -125,8 +127,6 @@ void Cell::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
             break;
         case CellStatus::flag:
             Henso(CellStatus::question);
-            GraphicsScene::LeftMineNum ++;
-            MainWindow::LeftMines->setText("剩余雷数:"+QString::number(GraphicsScene::LeftMineNum));
             break;
         case CellStatus::question:
             Henso(CellStatus::ini);

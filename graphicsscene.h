@@ -8,9 +8,29 @@
 #include <random>
 #include <ctime>
 #include <QDebug>
-
+#include <QStack>
 #include "cell.h"
 
+class ResNode//结果节点
+{
+public:
+    int x,y;//下标
+    bool flag;//是否有旗
+
+    ResNode(int xx,int yy,int flagg);
+
+    //重载==用于队列的查找及删除
+    bool operator==(const ResNode& another)const;
+};
+
+class ProbeResult
+{
+public:
+    QVector<QList<ResNode>> Res;
+    void Add(QList<Cell*>& l);
+    void Del(Cell*& c);
+    QVector<int> RmNecess();
+};
 class GraphicsScene : public QGraphicsScene
 {
     Q_OBJECT
@@ -20,7 +40,12 @@ public:
     void mouseReleaseEvent(QGraphicsSceneMouseEvent  *event);
     void MineBlockSet(int x=row,int y=column);
     void AutoFlag();
+    void AutoFlag(QList<Cell*>& ActiveNum);
+    QStack<Cell*> RevocableAutoFlag(QList<Cell*> ActiveNum);
     bool FlagCheck();
+    bool ProbeCheck(QList<Cell*>& AllNum);//试探后的矛盾性检测
+    void Recover(QStack<Cell*>& ss);
+    bool Probe(QList<Cell *>::iterator it,QList<Cell*>& ActiveIni,QList<Cell*>& ActiveNum,QList<Cell*>& AllNum,ProbeResult& Result);//递归回溯试探
     void FlagCheckEvent();
     void GameRestart();
     void CalProbability();
@@ -49,4 +74,7 @@ public:
     static QPixmap *num8;
     static QPixmap *num9;
 };
+
+
+
 #endif // GRAPHICSSCENE_H

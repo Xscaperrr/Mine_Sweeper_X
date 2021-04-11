@@ -75,7 +75,7 @@ void GraphicsScene::MineBlockSet(int x,int y)
         }
 
     std::default_random_engine e //便于调试取消真随机
-    (std::time(0))
+    //(std::time(0))
     ;
     
 
@@ -147,7 +147,88 @@ void GraphicsScene::GameRestart()
     Cell::nc=Cell::nr=1;
     MineBlockSet();
 }
+bool GraphicsScene::ProbeCheck(QList<Cell*>& AllNum)
+{
+    for(auto& i:AllNum)
+    {
+        auto r=RoundCell(i);
+        int flags=0;
+        int inis=0;
+        for(auto& c:r)
+            {
+                if(c->status == CellStatus::ini) inis++;
+                if(c->status == CellStatus::flag) flags++;
+            }
+        if(( flags> i->MineNum )||( inis+flags < i->MineNum )) return false;
+    }
+    return true;
+}
 
+void GraphicsScene::Recover(QStack<Cell*>& rec)
+{
+    while(!rec.empty())
+        {
+            rec.top()->Henso(CellStatus::ini);
+            rec.pop();
+        }
+}
+
+bool GraphicsScene::Probe(QList<Cell *>::iterator it,QList<Cell*>& ActiveIni,QList<Cell*>& ActiveNum,QList<Cell*>& AllNum,ProbeResult& Result)
+{
+    qDebug()<<"Probe flag "<<(int)(*it)->nx<<' '<<(int)(*it)->ny;
+    auto now=*it;
+    QStack<Cell*> rec;
+    auto itt=it;
+
+    now->Henso(CellStatus::flag);
+    rec=RevocableAutoFlag(ActiveNum);
+    if(!ProbeCheck(AllNum))
+    {
+        qDebug()<<"Paradox flag ";
+        qDebug()<<"clickable "<<(int)(*it)->nx<<' '<<(int)(*it)->ny;
+        now->Henso(CellStatus::clickable);
+        it=ActiveIni.erase(it);
+        Result.Del(now);
+        Recover(rec);
+        return false;
+    }
+    while(itt != ActiveIni.end())
+    {
+        if((*itt)->status == CellStatus::ini && Probe(itt,ActiveIni,ActiveNum,AllNum,Result)) goto F_Break;
+        itt++;
+    }
+    Result.Add(ActiveIni);
+    F_Break:
+    qDebug()<<"Recover Flag Assume!";
+    Recover(rec);
+
+    qDebug()<<"Probe clickable "<<(int)(*it)->nx<<' '<<(int)(*it)->ny;
+    itt=it;
+    now->Henso(CellStatus::clickable);
+    rec=RevocableAutoFlag(ActiveNum);
+    if(!ProbeCheck(AllNum))
+    {
+        qDebug()<<"Paradox clickable ";
+        qDebug()<<"flag "<<(int)(*it)->nx<<' '<<(int)(*it)->ny;
+        now->Henso(CellStatus::flag);
+        it=ActiveIni.erase(it);
+        Result.Del(now);
+        Recover(rec);
+        return false;
+    }
+    while(itt != ActiveIni.end())
+    {
+        if((*itt)->status == CellStatus::ini && Probe(itt,ActiveIni,ActiveNum,AllNum,Result)) goto C_Break;
+        itt++;
+    }
+    Result.Add(ActiveIni);
+    qDebug()<<"Recover clickable Assume!";
+    C_Break:
+    Recover(rec);
+
+    now->Henso(CellStatus::ini);
+    return true;
+}
 void GraphicsScene::AutoFlag()
 {
     QList<Cell*> ActiveNum;//活跃数字队列，指周围有未翻开格子的数字格
@@ -178,6 +259,33 @@ void GraphicsScene::AutoFlag()
                 }
                 else ActiveNum.push_back(cells[x][y]);//活跃但无法确定周遭状态
             }
+    AutoFlag(ActiveNum);
+
+    //简单标旗结束
+    QList<Cell*> AllNum,//全部数字格，用于回溯的错误判断
+                ActiveIni;//活跃的未翻开格，指周围有数字的未翻开格
+    int InactiveIniNum=0;//非活跃未翻开格数
+    for(auto x=1;x<=row;x++)
+        for(auto y=1;y<=column;y++)
+            if(cells[x][y]->status == CellStatus::num) AllNum.push_back(cells[x][y]);
+            else if(cells[x][y]->status == CellStatus::ini)
+            {
+                bool IfNum=false;
+                auto r=RoundCell(cells[x][y]);
+                for(auto& c:r)
+                    if(c->status==CellStatus::num)
+                    {
+                        IfNum=true;
+                        break;
+                    }
+                if(IfNum) ActiveIni.push_back(cells[x][y]);
+                else InactiveIniNum++;
+            }
+    ProbeResult Result;
+    Probe(ActiveIni.begin(),ActiveIni,ActiveNum,AllNum,Result);
+}
+void GraphicsScene::AutoFlag(QList<Cell*>& ActiveNum)
+{
     bool IfAct=true;//在队列的一轮遍历时是否有处理
     while(IfAct)
     {
@@ -219,6 +327,59 @@ void GraphicsScene::AutoFlag()
             else i++;
         }
     }
+}
+QStack<Cell*> GraphicsScene::RevocableAutoFlag(QList<Cell*> ActiveNum)
+{
+    QStack<Cell*>  ss;
+    bool IfAct=true;//在队列的一轮遍历时是否有处理
+    while(IfAct)
+    {
+        IfAct=false;
+        for(auto i=ActiveNum.begin();i !=ActiveNum.end();)
+        {
+            qDebug()<<"acess "<<(int)(*i)->nx<<(int)(*i)->ny;
+            int activity=0;
+            int flags=0;
+            auto r=RoundCell(*i);
+            for(auto& c:r)
+            {
+                if(c->status==CellStatus::ini) activity++;
+                if(c->status==CellStatus::flag) flags++;
+            }
+            if (activity == 0)//已经不活跃
+            {
+                qDebug()<<"release "<<(int)(*i)->nx<<(int)(*i)->ny;
+                i=ActiveNum.erase(i);
+            }
+            else if ((*i)->MineNum == flags)//周围可标无雷
+            {
+                IfAct=true;
+                qDebug()<<"clickable around "<<(int)(*i)->nx<<(int)(*i)->ny;
+                
+                for(auto& c:r)
+                    if(c->status==CellStatus::ini) 
+                    {
+                        c->Henso(CellStatus::clickable);
+                        ss.push_back(c);
+                    }
+                i=ActiveNum.erase(i);
+            }
+            else if (activity ==(*i)->MineNum - flags )//周围可标雷
+            {
+                IfAct=true;
+                qDebug()<<"flag around "<<(int)(*i)->nx<<(int)(*i)->ny;
+                for(auto& c:r)
+                    if(c->status==CellStatus::ini) 
+                    {
+                        c->Henso(CellStatus::flag);
+                        ss.push_back(c);
+                    }
+                i=ActiveNum.erase(i);
+            }
+            else i++;
+        }
+    }
+    return ss;    
 }
 void GraphicsScene::CalProbability()//概率计算
 {
@@ -311,6 +472,40 @@ void GraphicsScene::CalProbability()//概率计算
                 if(IfNum) ActiveIni.push_back(cells[x][y]);
                 else InactiveIniNum++;
             }
+}
+
+
+ResNode::ResNode(int xx,int yy,int flagg):
+x(xx),y(yy),flag(flagg)
+{
+}
+bool ResNode::operator==(const ResNode& another) const
+{
+    return another.x == x && another.y == y;
+}
+
+void ProbeResult::Add(QList<Cell*>& l)
+{
+    Res.push_back(QList<ResNode>());
+    for(auto& i:l) Res.back().push_back(ResNode(i->nx,i->ny,i->status == CellStatus::flag));
+}
+
+void ProbeResult::Del(Cell*& c)
+{
+    if(Res.size()==0)return;
+    ResNode tmp(c->nx,c->ny,c->status == CellStatus::flag);
+    QVector<QList<ResNode>::iterator> its(Res.size());
+    for(int i=0;i<Res.size();i++) its[i]=Res[i].begin(); 
+    while (its[0] != Res[0].end())
+    {
+        if(tmp == *its[0])
+        {
+            for(int i=0;i<Res.size();i++)
+                Res[i].erase(its[i]);
+            return;
+        }
+        for(auto& i:its) i++;
+    }
 }
 GraphicsScene::~GraphicsScene()
 {

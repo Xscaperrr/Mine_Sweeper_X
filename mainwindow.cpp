@@ -43,7 +43,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(actions[0][0],&QAction::triggered,scene,&GraphicsScene::GameRestart);
     connect(actions[1][0],&QAction::triggered,scene,&GraphicsScene::FlagCheckEvent);
-    connect(actions[1][1],&QAction::triggered,scene,&GraphicsScene::AutoFlag);
+    connect(actions[1][1],&QAction::triggered,scene,QOverload<>::of(&GraphicsScene::AutoFlag));
 
     for(int i=0;i<menus.size();i++)
     {
