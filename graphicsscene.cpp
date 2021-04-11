@@ -1,4 +1,5 @@
 #include "graphicsscene.h"
+#include "mainwindow.h"
 
 QPixmap * GraphicsScene::blank=nullptr;//据考证，QPixmap类设定成全局变量有bug,所以采用指针,并且不在类外初始化以规避
 QPixmap * GraphicsScene::flag=nullptr;
@@ -75,7 +76,7 @@ void GraphicsScene::MineBlockSet(int x,int y)
         }
 
     std::default_random_engine e //便于调试取消真随机
-    //(std::time(0))
+    (std::time(0))
     ;
     
 
@@ -93,7 +94,11 @@ void GraphicsScene::MineBlockSet(int x,int y)
                 for(auto& c:r) cells[i][j]->MineNum+=c->IfMine();
             }
 }
-
+void GraphicsScene::update(const QRectF &rect)
+{
+    MainWindow::LeftMines->setText("剩余雷数:"+QString::number(LeftMineNum));
+    QGraphicsScene::update(rect);
+}
 //获取周围的有效Cell的指针数组
 QVector<Cell*> GraphicsScene::RoundCell(Cell* c)
 {
@@ -145,6 +150,7 @@ void GraphicsScene::GameRestart()
     cells.clear();
     cells.resize(row+2);//哨兵加入
     Cell::nc=Cell::nr=1;
+    LeftMineNum=TotalMineNum;
     MineBlockSet();
 }
 bool GraphicsScene::ProbeCheck(QList<Cell*>& AllNum)
@@ -173,7 +179,7 @@ void GraphicsScene::Recover(QStack<Cell*>& rec)
         }
 }
 
-bool GraphicsScene::Probe(QList<Cell *>::iterator it,QList<Cell*>& ActiveIni,QList<Cell*>& ActiveNum,QList<Cell*>& AllNum,ProbeResult& Result)
+bool GraphicsScene::Probe(QList<Cell *>::iterator& it,QList<Cell*>& ActiveIni,QList<Cell*>& ActiveNum,QList<Cell*>& AllNum,ProbeResult& Result)
 {
     qDebug()<<"Probe flag "<<(int)(*it)->nx<<' '<<(int)(*it)->ny;
     auto now=*it;
@@ -181,7 +187,8 @@ bool GraphicsScene::Probe(QList<Cell *>::iterator it,QList<Cell*>& ActiveIni,QLi
     auto itt=it;
 
     now->Henso(CellStatus::flag);
-    rec=RevocableAutoFlag(ActiveNum);
+
+    RevocableAutoFlag(ActiveNum,rec);
     if(!ProbeCheck(AllNum))
     {
         qDebug()<<"Paradox flag ";
@@ -194,8 +201,12 @@ bool GraphicsScene::Probe(QList<Cell *>::iterator it,QList<Cell*>& ActiveIni,QLi
     }
     while(itt != ActiveIni.end())
     {
-        if((*itt)->status == CellStatus::ini && Probe(itt,ActiveIni,ActiveNum,AllNum,Result)) goto F_Break;
-        itt++;
+        if((*itt)->status == CellStatus::ini ) 
+        {
+            if(Probe(itt,ActiveIni,ActiveNum,AllNum,Result)) goto F_Break;
+            RevocableAutoFlag(ActiveNum,rec);
+        }
+        else itt++;
     }
     Result.Add(ActiveIni);
     F_Break:
@@ -205,7 +216,7 @@ bool GraphicsScene::Probe(QList<Cell *>::iterator it,QList<Cell*>& ActiveIni,QLi
     qDebug()<<"Probe clickable "<<(int)(*it)->nx<<' '<<(int)(*it)->ny;
     itt=it;
     now->Henso(CellStatus::clickable);
-    rec=RevocableAutoFlag(ActiveNum);
+    RevocableAutoFlag(ActiveNum,rec);
     if(!ProbeCheck(AllNum))
     {
         qDebug()<<"Paradox clickable ";
@@ -218,8 +229,12 @@ bool GraphicsScene::Probe(QList<Cell *>::iterator it,QList<Cell*>& ActiveIni,QLi
     }
     while(itt != ActiveIni.end())
     {
-        if((*itt)->status == CellStatus::ini && Probe(itt,ActiveIni,ActiveNum,AllNum,Result)) goto C_Break;
-        itt++;
+        if((*itt)->status == CellStatus::ini ) 
+        {
+            if(Probe(itt,ActiveIni,ActiveNum,AllNum,Result)) goto C_Break;
+            RevocableAutoFlag(ActiveNum,rec);
+        }
+        else itt++;
     }
     Result.Add(ActiveIni);
     qDebug()<<"Recover clickable Assume!";
@@ -260,7 +275,7 @@ void GraphicsScene::AutoFlag()
                 else ActiveNum.push_back(cells[x][y]);//活跃但无法确定周遭状态
             }
     AutoFlag(ActiveNum);
-
+    if(ActiveNum.size()==0) return;
     //简单标旗结束
     QList<Cell*> AllNum,//全部数字格，用于回溯的错误判断
                 ActiveIni;//活跃的未翻开格，指周围有数字的未翻开格
@@ -281,9 +296,27 @@ void GraphicsScene::AutoFlag()
                 if(IfNum) ActiveIni.push_back(cells[x][y]);
                 else InactiveIniNum++;
             }
+    qDebug()<<"InactiveIniNum="<<InactiveIniNum;
+    if( InactiveIniNum==0 && ActiveIni.size()==0 && FlagCheck() )
+    {
+        QMessageBox::information(NULL, tr("提示"), tr("游戏胜利"));
+        return;
+    }
     ProbeResult Result;
-    Probe(ActiveIni.begin(),ActiveIni,ActiveNum,AllNum,Result);
+    auto it=ActiveIni.begin();
+    while(!Probe(it,ActiveIni,ActiveNum,AllNum,Result))
+    {
+        AutoFlag(ActiveNum);
+        if(ActiveNum.size()==0) return;
+        while(it != ActiveIni.end()) 
+            if((*it)->status !=CellStatus::ini) it=ActiveIni.erase(it);
+            else it++;
+        it=ActiveIni.begin();
+        Probe(it,ActiveIni,ActiveNum,AllNum,Result);
+    }
 }
+
+//只在非试探状态下使用
 void GraphicsScene::AutoFlag(QList<Cell*>& ActiveNum)
 {
     bool IfAct=true;//在队列的一轮遍历时是否有处理
@@ -328,9 +361,8 @@ void GraphicsScene::AutoFlag(QList<Cell*>& ActiveNum)
         }
     }
 }
-QStack<Cell*> GraphicsScene::RevocableAutoFlag(QList<Cell*> ActiveNum)
+void GraphicsScene::RevocableAutoFlag(QList<Cell*> ActiveNum,QStack<Cell*>& ss)
 {
-    QStack<Cell*>  ss;
     bool IfAct=true;//在队列的一轮遍历时是否有处理
     while(IfAct)
     {
@@ -379,7 +411,6 @@ QStack<Cell*> GraphicsScene::RevocableAutoFlag(QList<Cell*> ActiveNum)
             else i++;
         }
     }
-    return ss;    
 }
 void GraphicsScene::CalProbability()//概率计算
 {

@@ -25,7 +25,9 @@ Cell::Cell(qreal x,qreal y,char k)//构造函数
 {
     MineNum = k;
     status=CellStatus::ini;
-    Henso(CellStatus::ini);
+    setPixmap(*GraphicsScene::ini);
+
+    // Henso(CellStatus::ini);
     setPos(x,y);
 }
 Cell::Cell(CellStatus s)
@@ -43,13 +45,16 @@ void Cell::SwapMine(Cell& x)
 
 void Cell::Henso(CellStatus NewStatus)
 {
+    if(status ==CellStatus::flag)
+    {
+        GraphicsScene::LeftMineNum ++;
+        MainWindow::LeftMines->setText("剩余雷数:"+QString::number(GraphicsScene::LeftMineNum));
+    }
     switch (NewStatus)
     {
     case CellStatus::ini:
         status=CellStatus::ini;
         setPixmap(*GraphicsScene::ini);
-        GraphicsScene::LeftMineNum ++;
-        //MainWindow::LeftMines->setText("剩余雷数:"+QString::number(GraphicsScene::LeftMineNum));//???莫名其妙加上后无法运行
         break;
     case CellStatus::flag:
         status=CellStatus::flag;

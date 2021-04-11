@@ -36,16 +36,17 @@ class GraphicsScene : public QGraphicsScene
     Q_OBJECT
 public:
     GraphicsScene(QObject *parent = nullptr);
+    void update(const QRectF &rect = QRectF());
     void mousePressEvent(QGraphicsSceneMouseEvent  *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent  *event);
     void MineBlockSet(int x=row,int y=column);
     void AutoFlag();
     void AutoFlag(QList<Cell*>& ActiveNum);
-    QStack<Cell*> RevocableAutoFlag(QList<Cell*> ActiveNum);
-    bool FlagCheck();
+    void RevocableAutoFlag(QList<Cell*> ActiveNum,QStack<Cell*>& ss);
+    static bool FlagCheck();
     bool ProbeCheck(QList<Cell*>& AllNum);//试探后的矛盾性检测
     void Recover(QStack<Cell*>& ss);
-    bool Probe(QList<Cell *>::iterator it,QList<Cell*>& ActiveIni,QList<Cell*>& ActiveNum,QList<Cell*>& AllNum,ProbeResult& Result);//递归回溯试探
+    bool Probe(QList<Cell *>::iterator& it,QList<Cell*>& ActiveIni,QList<Cell*>& ActiveNum,QList<Cell*>& AllNum,ProbeResult& Result);//递归回溯试探
     void FlagCheckEvent();
     void GameRestart();
     void CalProbability();
