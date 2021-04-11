@@ -13,6 +13,7 @@ enum class CellStatus:char
     flag,//旗
     blank,//空格
     question,//问号
+    clickable,//通过作弊确认为非雷的状态
     kara  //空，非状态，表示不传参数
 };
 
@@ -26,7 +27,7 @@ public:
     char nx,ny;//记录是第几行第几个
     Cell(char x=-1);
     Cell(qreal x,qreal y,char k);
-
+    Cell(CellStatus s);
     void SwapMine(Cell& x);
     //改变status及外表
     void Henso(CellStatus NewStatus=CellStatus::kara);
@@ -37,7 +38,7 @@ public:
     //鼠标释放
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
 
-    void RightRelease();
+    void LeftRelease();
     char IfMine();
     ~Cell();
 };

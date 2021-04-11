@@ -1,5 +1,6 @@
 // #include "cell.h"
 #include "graphicsscene.h"
+#include "mainwindow.h"
 
 // char Cell::row=9;
 // char Cell::column=9;
@@ -27,6 +28,10 @@ Cell::Cell(qreal x,qreal y,char k)//构造函数
     Henso(CellStatus::ini);
     setPos(x,y);
 }
+Cell::Cell(CellStatus s)
+{
+    status=CellStatus::kara;
+}
 Cell::~Cell()
 {
 };
@@ -47,6 +52,8 @@ void Cell::Henso(CellStatus NewStatus)
     case CellStatus::flag:
         status=CellStatus::flag;
         setPixmap(*GraphicsScene::flag);
+        GraphicsScene::LeftMineNum --;
+        MainWindow::LeftMines->setText("剩余雷数:"+QString::number(GraphicsScene::LeftMineNum));
         break;
     case CellStatus::question:
         status=CellStatus::question;
@@ -59,6 +66,10 @@ void Cell::Henso(CellStatus NewStatus)
     case CellStatus::blank:
         status=CellStatus::blank;
         setPixmap(*GraphicsScene::blank);
+        break;
+    case CellStatus::clickable:
+        status=CellStatus::clickable;
+        setPixmap(*GraphicsScene::clickable);
         break;
     case CellStatus::num:
         status=CellStatus::num;
@@ -114,6 +125,8 @@ void Cell::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
             break;
         case CellStatus::flag:
             Henso(CellStatus::question);
+            GraphicsScene::LeftMineNum ++;
+            MainWindow::LeftMines->setText("剩余雷数:"+QString::number(GraphicsScene::LeftMineNum));
             break;
         case CellStatus::question:
             Henso(CellStatus::ini);
@@ -122,11 +135,11 @@ void Cell::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
             break;
         }
     }
-    else RightRelease();//为了自动扩展拆分
+    else LeftRelease();//为了自动扩展拆分
 }
-void Cell::RightRelease()
+void Cell::LeftRelease()
 {
-    if(status == CellStatus::ini)
+    if(status == CellStatus::ini || status == CellStatus::clickable)
     {
         switch (MineNum)
             {
