@@ -74,10 +74,9 @@ void GraphicsScene::MineBlockSet(int x,int y)
             }
             else cells[i].push_back(new Cell(CellStatus::kara));
         }
-
-    std::default_random_engine e //便于调试取消真随机
-    (std::time(0))
-    ;
+    time_t seed=time(0);
+    qDebug()<<"seed:"<<seed;
+    std::default_random_engine e(1618243303);
     
 
     for(int i=0;i<x*y;i++)
@@ -153,7 +152,7 @@ void GraphicsScene::GameRestart()
     LeftMineNum=TotalMineNum;
     MineBlockSet();
 }
-bool GraphicsScene::ProbeCheck(QList<Cell*>& AllNum)
+bool GraphicsScene::ProbeCheck(const QList<Cell*>& AllNum)
 {
     for(auto& i:AllNum)
     {
@@ -178,70 +177,86 @@ void GraphicsScene::Recover(QStack<Cell*>& rec)
             rec.pop();
         }
 }
+void GraphicsScene::Probe(QList<Cell*>& ActiveIni,QList<Cell*>& ActiveNum,ProbeResult& Result)
+{
+    QList<Cell *>::iterator it=ActiveIni.begin();
+    while(!Probe(it,ActiveIni,ActiveNum,Result))
+    {
+        it++;
+    }
+}
+bool GraphicsScene::Probe
+(
+const QList<Cell *>::iterator& it,//只是当前试探位置，除非删除不做任何更改
+const QList<Cell*>& ActiveIni,//从第一次Probe开始不做更改只做标记
+const QList<Cell*>& ActiveNum,//仅用于复位
+ProbeResult& Result//用于存储
+)
 
-bool GraphicsScene::Probe(QList<Cell *>::iterator& it,QList<Cell*>& ActiveIni,QList<Cell*>& ActiveNum,QList<Cell*>& AllNum,ProbeResult& Result)
 {
     qDebug()<<"Probe flag "<<(int)(*it)->nx<<' '<<(int)(*it)->ny;
-    auto now=*it;
     QStack<Cell*> rec;
-    auto itt=it;
+    auto nowit=it;
+    auto NowActiveNum=ActiveNum;
+    (*nowit)->Henso(CellStatus::flag);
 
-    now->Henso(CellStatus::flag);
-
-    RevocableAutoFlag(ActiveNum,rec);
-    if(!ProbeCheck(AllNum))
+    RevocableAutoFlag(NowActiveNum,rec);//此时NowActiveNum不可信
+    if(!ProbeCheck(ActiveNum))//使用可信的ActiveNum进行检测
     {
-        qDebug()<<"Paradox flag ";
-        qDebug()<<"clickable "<<(int)(*it)->nx<<' '<<(int)(*it)->ny;
-        now->Henso(CellStatus::clickable);
-        it=ActiveIni.erase(it);
-        Result.Del(now);
+        qDebug()<<"Paradox flag "<<(int)(*nowit)->nx<<' '<<(int)(*it)->ny;
+        qDebug()<<"clickable "<<(int)(*nowit)->nx<<' '<<(int)(*it)->ny;
+        (*nowit)->Henso(CellStatus::clickable);
         Recover(rec);
         return false;
     }
-    while(itt != ActiveIni.end())
+    while(nowit != ActiveIni.end())
     {
-        if((*itt)->status == CellStatus::ini ) 
+        if((*nowit)->status == CellStatus::ini ) 
         {
-            if(Probe(itt,ActiveIni,ActiveNum,AllNum,Result)) goto F_Break;
-            RevocableAutoFlag(ActiveNum,rec);
+            if(Probe(nowit,ActiveIni,NowActiveNum,Result)) goto F_Break;
+            rec.push(*nowit);//一次试探失败时，Probe做的只有一件事可以在外部看到，就是标出他现在可以确定的状态
+            RevocableAutoFlag(NowActiveNum,rec);//根据此状态继续标
         }
-        else itt++;
+        nowit++;
     }
-    Result.Add(ActiveIni);
+    Result.Add();
     F_Break:
     qDebug()<<"Recover Flag Assume!";
-    Recover(rec);
+    
 
     qDebug()<<"Probe clickable "<<(int)(*it)->nx<<' '<<(int)(*it)->ny;
-    itt=it;
-    now->Henso(CellStatus::clickable);
-    RevocableAutoFlag(ActiveNum,rec);
-    if(!ProbeCheck(AllNum))
+    Recover(rec);
+    nowit=it;
+    NowActiveNum=ActiveNum;
+
+    (*nowit)->Henso(CellStatus::clickable);
+    RevocableAutoFlag(NowActiveNum,rec);
+
+    if(!ProbeCheck(ActiveNum))
     {
         qDebug()<<"Paradox clickable ";
         qDebug()<<"flag "<<(int)(*it)->nx<<' '<<(int)(*it)->ny;
-        now->Henso(CellStatus::flag);
-        it=ActiveIni.erase(it);
-        Result.Del(now);
+        (*nowit)->Henso(CellStatus::flag);
         Recover(rec);
         return false;
     }
-    while(itt != ActiveIni.end())
+    while(nowit != ActiveIni.end())
     {
-        if((*itt)->status == CellStatus::ini ) 
+        if((*nowit)->status == CellStatus::ini ) 
         {
-            if(Probe(itt,ActiveIni,ActiveNum,AllNum,Result)) goto C_Break;
-            RevocableAutoFlag(ActiveNum,rec);
+            if(Probe(nowit,ActiveIni,NowActiveNum,Result)) goto C_Break;
+            rec.push(*nowit);//一次试探失败时，Probe做的只有一件事可以在外部看到，就是标出他现在可以确定的状态
+            RevocableAutoFlag(NowActiveNum,rec);//根据此状态继续标
         }
-        else itt++;
+        nowit++;
     }
-    Result.Add(ActiveIni);
-    qDebug()<<"Recover clickable Assume!";
+    Result.Add();
+    
     C_Break:
     Recover(rec);
+    qDebug()<<"Recover clickable Assume!";
 
-    now->Henso(CellStatus::ini);
+    (*it)->Henso(CellStatus::ini);
     return true;
 }
 void GraphicsScene::AutoFlag()
@@ -262,13 +277,13 @@ void GraphicsScene::AutoFlag()
                 if (activity == 0) continue;//非活跃
                 if (cells[x][y]->MineNum == flags)//所有雷已经标记完,则将其他未翻开格子标记为无雷
                 {
-                    qDebug()<<"clickable around "<<(int)x<<(int)y;
+                    //qDebug()<<"clickable around "<<(int)x<<(int)y;
                     for(auto& c:r)
                         if(c->status==CellStatus::ini) c->Henso(CellStatus::clickable);
                 }
                 else if (activity ==cells[x][y]->MineNum - flags)//未翻开格子数 == 周围雷数，则全部标雷雷
                 {
-                    qDebug()<<"flag around "<<(int)x<<(int)y;
+                    //qDebug()<<"flag around "<<(int)x<<(int)y;
                     for(auto& c:r)
                         if(c->status==CellStatus::ini) c->Henso(CellStatus::flag);
                 }
@@ -296,24 +311,25 @@ void GraphicsScene::AutoFlag()
                 if(IfNum) ActiveIni.push_back(cells[x][y]);
                 else InactiveIniNum++;
             }
-    qDebug()<<"InactiveIniNum="<<InactiveIniNum;
+    //qDebug()<<"InactiveIniNum="<<InactiveIniNum;
     if( InactiveIniNum==0 && ActiveIni.size()==0 && FlagCheck() )
     {
         QMessageBox::information(NULL, tr("提示"), tr("游戏胜利"));
         return;
     }
-    ProbeResult Result;
-    auto it=ActiveIni.begin();
-    while(!Probe(it,ActiveIni,ActiveNum,AllNum,Result))
-    {
-        AutoFlag(ActiveNum);
-        if(ActiveNum.size()==0) return;
-        while(it != ActiveIni.end()) 
-            if((*it)->status !=CellStatus::ini) it=ActiveIni.erase(it);
-            else it++;
-        it=ActiveIni.begin();
-        Probe(it,ActiveIni,ActiveNum,AllNum,Result);
-    }
+    ProbeResult Result(ActiveIni);
+    Probe(ActiveIni,ActiveNum,Result);
+    //auto it=ActiveIni.begin();
+    // while(!Probe(it,ActiveIni,ActiveNum,Result))
+    // {
+    //     AutoFlag(ActiveNum);
+    //     if(ActiveNum.size()==0) return;
+    //     while(it != ActiveIni.end()) 
+    //         if((*it)->status !=CellStatus::ini) it=ActiveIni.erase(it);
+    //         else it++;
+    //     it=ActiveIni.begin();
+    //     Probe(it,ActiveIni,ActiveNum,Result);
+    // }
 }
 
 //只在非试探状态下使用
@@ -325,7 +341,7 @@ void GraphicsScene::AutoFlag(QList<Cell*>& ActiveNum)
         IfAct=false;
         for(auto i=ActiveNum.begin();i !=ActiveNum.end();)
         {
-            qDebug()<<"acess "<<(int)(*i)->nx<<(int)(*i)->ny;
+            // qDebug()<<"acess "<<(int)(*i)->nx<<(int)(*i)->ny;
             int activity=0;
             int flags=0;
             auto r=RoundCell(*i);
@@ -336,13 +352,14 @@ void GraphicsScene::AutoFlag(QList<Cell*>& ActiveNum)
             }
             if (activity == 0)//已经不活跃
             {
-                qDebug()<<"release "<<(int)(*i)->nx<<(int)(*i)->ny;
+                IfAct=true;
+                // qDebug()<<"release "<<(int)(*i)->nx<<(int)(*i)->ny;
                 i=ActiveNum.erase(i);
             }
             else if ((*i)->MineNum == flags)//周围可标无雷
             {
                 IfAct=true;
-                qDebug()<<"clickable around "<<(int)(*i)->nx<<(int)(*i)->ny;
+                // qDebug()<<"clickable around "<<(int)(*i)->nx<<(int)(*i)->ny;
                 
                 for(auto& c:r)
                     if(c->status==CellStatus::ini) c->Henso(CellStatus::clickable);
@@ -352,7 +369,7 @@ void GraphicsScene::AutoFlag(QList<Cell*>& ActiveNum)
             else if (activity ==(*i)->MineNum - flags )//周围可标雷
             {
                 IfAct=true;
-                qDebug()<<"flag around "<<(int)(*i)->nx<<(int)(*i)->ny;
+                // qDebug()<<"flag around "<<(int)(*i)->nx<<(int)(*i)->ny;
                 for(auto& c:r)
                     if(c->status==CellStatus::ini) c->Henso(CellStatus::flag);
                 i=ActiveNum.erase(i);
@@ -361,7 +378,7 @@ void GraphicsScene::AutoFlag(QList<Cell*>& ActiveNum)
         }
     }
 }
-void GraphicsScene::RevocableAutoFlag(QList<Cell*> ActiveNum,QStack<Cell*>& ss)
+void GraphicsScene::RevocableAutoFlag(QList<Cell*>& ActiveNum,QStack<Cell*>& ss)
 {
     bool IfAct=true;//在队列的一轮遍历时是否有处理
     while(IfAct)
@@ -369,7 +386,7 @@ void GraphicsScene::RevocableAutoFlag(QList<Cell*> ActiveNum,QStack<Cell*>& ss)
         IfAct=false;
         for(auto i=ActiveNum.begin();i !=ActiveNum.end();)
         {
-            qDebug()<<"acess "<<(int)(*i)->nx<<(int)(*i)->ny;
+            //qDebug()<<"acess "<<(int)(*i)->nx<<(int)(*i)->ny;
             int activity=0;
             int flags=0;
             auto r=RoundCell(*i);
@@ -380,13 +397,14 @@ void GraphicsScene::RevocableAutoFlag(QList<Cell*> ActiveNum,QStack<Cell*>& ss)
             }
             if (activity == 0)//已经不活跃
             {
-                qDebug()<<"release "<<(int)(*i)->nx<<(int)(*i)->ny;
+                IfAct=true;
+                //qDebug()<<"release "<<(int)(*i)->nx<<(int)(*i)->ny;
                 i=ActiveNum.erase(i);
             }
             else if ((*i)->MineNum == flags)//周围可标无雷
             {
                 IfAct=true;
-                qDebug()<<"clickable around "<<(int)(*i)->nx<<(int)(*i)->ny;
+                //qDebug()<<"clickable around "<<(int)(*i)->nx<<(int)(*i)->ny;
                 
                 for(auto& c:r)
                     if(c->status==CellStatus::ini) 
@@ -399,7 +417,7 @@ void GraphicsScene::RevocableAutoFlag(QList<Cell*> ActiveNum,QStack<Cell*>& ss)
             else if (activity ==(*i)->MineNum - flags )//周围可标雷
             {
                 IfAct=true;
-                qDebug()<<"flag around "<<(int)(*i)->nx<<(int)(*i)->ny;
+                //qDebug()<<"flag around "<<(int)(*i)->nx<<(int)(*i)->ny;
                 for(auto& c:r)
                     if(c->status==CellStatus::ini) 
                     {
@@ -506,38 +524,48 @@ void GraphicsScene::CalProbability()//概率计算
 }
 
 
-ResNode::ResNode(int xx,int yy,int flagg):
-x(xx),y(yy),flag(flagg)
+// ResNode::ResNode(int xx,int yy,int flagg):
+// x(xx),y(yy),flag(flagg)
+// {
+// }
+// bool ResNode::operator==(const ResNode& another) const
+// {
+//     return another.x == x && another.y == y;
+// }
+ProbeResult::ProbeResult(const QList<Cell*>& TheAcitveIni)
+:
+AcitveIni(TheAcitveIni),
+Res(TheAcitveIni.size())
 {
 }
-bool ResNode::operator==(const ResNode& another) const
+void ProbeResult::Add()
 {
-    return another.x == x && another.y == y;
-}
-
-void ProbeResult::Add(QList<Cell*>& l)
-{
-    Res.push_back(QList<ResNode>());
-    for(auto& i:l) Res.back().push_back(ResNode(i->nx,i->ny,i->status == CellStatus::flag));
-}
-
-void ProbeResult::Del(Cell*& c)
-{
-    if(Res.size()==0)return;
-    ResNode tmp(c->nx,c->ny,c->status == CellStatus::flag);
-    QVector<QList<ResNode>::iterator> its(Res.size());
-    for(int i=0;i<Res.size();i++) its[i]=Res[i].begin(); 
-    while (its[0] != Res[0].end())
+    auto i=AcitveIni.begin();
+    auto j=Res.begin();
+    while(i!=AcitveIni.end())
     {
-        if(tmp == *its[0])
-        {
-            for(int i=0;i<Res.size();i++)
-                Res[i].erase(its[i]);
-            return;
-        }
-        for(auto& i:its) i++;
+        j->push_back((*i)->status == CellStatus::flag);
+        i++;j++;
     }
 }
+
+// void ProbeResult::Del(Cell*& c)
+// {
+//     if(Res.size()==0)return;
+//     ResNode tmp(c->nx,c->ny,c->status == CellStatus::flag);
+//     QVector<QList<ResNode>::iterator> its(Res.size());
+//     for(int i=0;i<Res.size();i++) its[i]=Res[i].begin(); 
+//     while (its[0] != Res[0].end())
+//     {
+//         if(tmp == *its[0])
+//         {
+//             for(int i=0;i<Res.size();i++)
+//                 Res[i].erase(its[i]);
+//             return;
+//         }
+//         for(auto& i:its) i++;
+//     }
+// }
 GraphicsScene::~GraphicsScene()
 {
 }

@@ -11,24 +11,15 @@
 #include <QStack>
 #include "cell.h"
 
-class ResNode//结果节点
-{
-public:
-    int x,y;//下标
-    bool flag;//是否有旗
-
-    ResNode(int xx,int yy,int flagg);
-
-    //重载==用于队列的查找及删除
-    bool operator==(const ResNode& another)const;
-};
-
 class ProbeResult
 {
 public:
-    QVector<QList<ResNode>> Res;
-    void Add(QList<Cell*>& l);
-    void Del(Cell*& c);
+    //QVector<QList<ResNode>> Res;
+    ProbeResult(const QList<Cell*>& TheAcitveIni);
+    void Add();
+    //void Del(Cell*& c);
+    const QList<Cell*>& AcitveIni;//仅访问获取结果
+    QVector<QVector<bool>> Res;//True为旗，False为可点击
     QVector<int> RmNecess();
 };
 class GraphicsScene : public QGraphicsScene
@@ -42,11 +33,12 @@ public:
     void MineBlockSet(int x=row,int y=column);
     void AutoFlag();
     void AutoFlag(QList<Cell*>& ActiveNum);
-    void RevocableAutoFlag(QList<Cell*> ActiveNum,QStack<Cell*>& ss);
+    void RevocableAutoFlag(QList<Cell*>& ActiveNum,QStack<Cell*>& ss);
     static bool FlagCheck();
-    bool ProbeCheck(QList<Cell*>& AllNum);//试探后的矛盾性检测
+    bool ProbeCheck(const QList<Cell*>& AllNum);//试探后的矛盾性检测
     void Recover(QStack<Cell*>& ss);
-    bool Probe(QList<Cell *>::iterator& it,QList<Cell*>& ActiveIni,QList<Cell*>& ActiveNum,QList<Cell*>& AllNum,ProbeResult& Result);//递归回溯试探
+    void Probe(QList<Cell*>& ActiveIni,QList<Cell*>& ActiveNum,ProbeResult& Result);//递归回溯试探
+    bool Probe(const QList<Cell *>::iterator& it,const QList<Cell*>& ActiveIni,const QList<Cell*>& ActiveNum,ProbeResult& Result);//递归回溯试探
     void FlagCheckEvent();
     void GameRestart();
     void CalProbability();
