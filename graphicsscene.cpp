@@ -290,15 +290,17 @@ void GraphicsScene::AutoFlag()
                 else ActiveNum.push_back(cells[x][y]);//活跃但无法确定周遭状态
             }
     AutoFlag(ActiveNum);
-    if(ActiveNum.size()==0) return;
+    if(ActiveNum.size()==0)//此时
+    {
+        if(LeftMineNum==0 && FlagCheck()) QMessageBox::information(NULL, tr("提示"), tr("游戏胜利"));
+        return;
+    }
     //简单标旗结束
-    QList<Cell*> AllNum,//全部数字格，用于回溯的错误判断
-                ActiveIni;//活跃的未翻开格，指周围有数字的未翻开格
+    QList<Cell*> ActiveIni;//活跃的未翻开格，指周围有数字的未翻开格
     int InactiveIniNum=0;//非活跃未翻开格数
     for(auto x=1;x<=row;x++)
         for(auto y=1;y<=column;y++)
-            if(cells[x][y]->status == CellStatus::num) AllNum.push_back(cells[x][y]);
-            else if(cells[x][y]->status == CellStatus::ini)
+            if(cells[x][y]->status == CellStatus::ini)
             {
                 bool IfNum=false;
                 auto r=RoundCell(cells[x][y]);
@@ -311,7 +313,7 @@ void GraphicsScene::AutoFlag()
                 if(IfNum) ActiveIni.push_back(cells[x][y]);
                 else InactiveIniNum++;
             }
-    //qDebug()<<"InactiveIniNum="<<InactiveIniNum;
+    //std::cout<<InactiveIniNum<<std::endl;
     if( InactiveIniNum==0 && ActiveIni.size()==0 && FlagCheck() )
     {
         QMessageBox::information(NULL, tr("提示"), tr("游戏胜利"));
@@ -319,17 +321,7 @@ void GraphicsScene::AutoFlag()
     }
     ProbeResult Result(ActiveIni);
     Probe(ActiveIni,ActiveNum,Result);
-    //auto it=ActiveIni.begin();
-    // while(!Probe(it,ActiveIni,ActiveNum,Result))
-    // {
-    //     AutoFlag(ActiveNum);
-    //     if(ActiveNum.size()==0) return;
-    //     while(it != ActiveIni.end()) 
-    //         if((*it)->status !=CellStatus::ini) it=ActiveIni.erase(it);
-    //         else it++;
-    //     it=ActiveIni.begin();
-    //     Probe(it,ActiveIni,ActiveNum,Result);
-    // }
+    Result.RmNecessity();
 }
 
 //只在非试探状态下使用
@@ -532,7 +524,7 @@ void GraphicsScene::CalProbability()//概率计算
 // {
 //     return another.x == x && another.y == y;
 // }
-ProbeResult::ProbeResult(const QList<Cell*>& TheAcitveIni)
+ProbeResult::ProbeResult(QList<Cell*>& TheAcitveIni)
 :
 AcitveIni(TheAcitveIni),
 Res(TheAcitveIni.size())
@@ -548,7 +540,36 @@ void ProbeResult::Add()
         i++;j++;
     }
 }
-
+void ProbeResult::RmNecessity()
+{
+    auto i=AcitveIni.begin();
+    auto j=Res.begin();
+    while(i!=AcitveIni.end())
+    {
+        bool flag=true;
+        bool clickable=true;
+        for(auto& x:*j)
+            if(x) clickable=false;
+            else flag=false;
+        if(flag)
+        {
+            (*i)->Henso(CellStatus::flag);
+            i=AcitveIni.erase(i);
+            j=Res.erase(j);
+        }
+        else if(clickable)
+        {
+            (*i)->Henso(CellStatus::clickable);
+            i=AcitveIni.erase(i);
+            j=Res.erase(j);
+        }
+        else 
+        {
+            i++;
+            j++;
+        }
+    }
+}
 // void ProbeResult::Del(Cell*& c)
 // {
 //     if(Res.size()==0)return;

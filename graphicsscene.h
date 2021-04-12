@@ -5,6 +5,7 @@
 #include <QMessageBox>
 // #include <QGraphicsSceneMouseEvent>  
 #include <vector>
+#include <list>//Qlist缺少int初始化的构造函数
 #include <random>
 #include <ctime>
 #include <QDebug>
@@ -15,12 +16,12 @@ class ProbeResult
 {
 public:
     //QVector<QList<ResNode>> Res;
-    ProbeResult(const QList<Cell*>& TheAcitveIni);
+    ProbeResult(QList<Cell*>& TheAcitveIni);
     void Add();
     //void Del(Cell*& c);
-    const QList<Cell*>& AcitveIni;//仅访问获取结果
-    QVector<QVector<bool>> Res;//True为旗，False为可点击
-    QVector<int> RmNecess();
+    QList<Cell*>& AcitveIni;//仅访问获取结果
+    std::list<QVector<bool>> Res;//True为旗，False为可点击
+    void RmNecessity();
 };
 class GraphicsScene : public QGraphicsScene
 {
