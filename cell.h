@@ -4,7 +4,7 @@
 #include <QGraphicsPixmapItem>
 #include <QGraphicsSceneMouseEvent>  
 #include <iostream>
-
+#include <QToolTip>
 enum class CellStatus:char
 {
     ini,//未翻开
@@ -37,6 +37,10 @@ public:
 
     //鼠标释放
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
+
+    void hoverEnterEvent(QGraphicsSceneHoverEvent *event);
+    void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
+    //void hoverMoveEvent(QGraphicsSceneHoverEvent *event);
 
     void LeftRelease();
     char IfMine();

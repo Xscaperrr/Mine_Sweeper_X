@@ -23,6 +23,7 @@ Cell::Cell(char x):Cell((nr-1)*pix,(nc-1)*pix,x)
 }
 Cell::Cell(qreal x,qreal y,char k)//构造函数
 {
+    //setAcceptHoverEvents(true);
     MineNum = k;
     status=CellStatus::ini;
     setPixmap(*GraphicsScene::ini);
@@ -118,7 +119,7 @@ void Cell::Henso(CellStatus NewStatus)
 }
 void Cell::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-
+    //setToolTip("try");
 }
 
 void Cell::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
@@ -175,4 +176,15 @@ char Cell::IfMine()
 {
     if(MineNum==-1) return 1;
     else return 0;
+}
+
+void Cell::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
+{
+    //setToolTip("try");
+    //QToolTip::showText(event->screenPos(), toolTip());
+    //std::cout<<"triggered!\n";
+}
+void Cell::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
+{
+    //QToolTip::hideText();
 }

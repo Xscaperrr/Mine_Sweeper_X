@@ -31,18 +31,25 @@ public:
     void update(const QRectF &rect = QRectF());
     void mousePressEvent(QGraphicsSceneMouseEvent  *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent  *event);
+
     void MineBlockSet(int x=row,int y=column);
+
     void AutoFlag();
     void AutoFlag(QList<Cell*>& ActiveNum);
+
     void RevocableAutoFlag(QList<Cell*>& ActiveNum,QStack<Cell*>& ss);
-    static bool FlagCheck();
     bool ProbeCheck(const QList<Cell*>& AllNum);//试探后的矛盾性检测
-    void Recover(QStack<Cell*>& ss);
-    void Probe(QList<Cell*>& ActiveIni,QList<Cell*>& ActiveNum,ProbeResult& Result);//递归回溯试探
+
+    void Recover(QStack<Cell*>& ss);//状态恢复
+
+    void Probe(QList<Cell*>& ActiveIni,QList<Cell*>& ActiveNum,ProbeResult& Result);//试探全过程
     bool Probe(const QList<Cell *>::iterator& it,const QList<Cell*>& ActiveIni,const QList<Cell*>& ActiveNum,ProbeResult& Result);//递归回溯试探
+
     void FlagCheckEvent();
     void GameRestart();
-    void CalProbability();
+    //void CalProbability();
+    
+    static bool FlagCheck();
     static QVector<Cell*> RoundCell(Cell* c);
     static void BlankProcess(int x,int y);
     ~GraphicsScene();

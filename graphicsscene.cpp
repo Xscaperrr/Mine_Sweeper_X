@@ -322,6 +322,7 @@ void GraphicsScene::AutoFlag()
     ProbeResult Result(ActiveIni);
     Probe(ActiveIni,ActiveNum,Result);
     Result.RmNecessity();
+    //for(auto& i:ActiveIni) i->setAcceptHoverEvents(true);
 }
 
 //只在非试探状态下使用
@@ -422,108 +423,7 @@ void GraphicsScene::RevocableAutoFlag(QList<Cell*>& ActiveNum,QStack<Cell*>& ss)
         }
     }
 }
-void GraphicsScene::CalProbability()//概率计算
-{
-    QList<Cell*> ActiveNum;//活跃数字队列，指周围有未翻开格子的数字格
-    for(auto x=1;x<=row;x++)
-        for(auto y=1;y<=column;y++)
-            if(cells[x][y]->status == CellStatus::num)
-            {
-                int activity=0;//周围的未翻开格子数
-                int flags=0;//周围的旗子数
-                auto r=RoundCell(cells[x][y]);
-                for(auto& c:r)//遍历周围格子计数
-                {
-                    if(c->status==CellStatus::ini) activity++;
-                    if(c->status==CellStatus::flag) flags++;
-                }
-                if (activity == 0) continue;//非活跃
-                if (cells[x][y]->MineNum == flags)//所有雷已经标记完,则将其他未翻开格子标记为无雷
-                {
-                    qDebug()<<"clickable around "<<(int)x<<(int)y;
-                    for(auto& c:r)
-                        if(c->status==CellStatus::ini) c->Henso(CellStatus::clickable);
-                }
-                else if (activity ==cells[x][y]->MineNum - flags)//未翻开格子数 == 周围雷数，则全部标雷雷
-                {
-                    qDebug()<<"flag around "<<(int)x<<(int)y;
-                    for(auto& c:r)
-                        if(c->status==CellStatus::ini) c->Henso(CellStatus::flag);
-                }
-                else ActiveNum.push_back(cells[x][y]);//活跃但无法确定周遭状态
-            }
-    bool IfAct=true;//在队列的一轮遍历时是否有处理
-    while(IfAct)
-    {
-        IfAct=false;
-        for(auto i=ActiveNum.begin();i !=ActiveNum.end();)
-        {
-            qDebug()<<"acess "<<(int)(*i)->nx<<(int)(*i)->ny;
-            int activity=0;
-            int flags=0;
-            auto r=RoundCell(*i);
-            for(auto& c:r)
-            {
-                if(c->status==CellStatus::ini) activity++;
-                if(c->status==CellStatus::flag) flags++;
-            }
-            if (activity == 0)//已经不活跃
-            {
-                qDebug()<<"release "<<(int)(*i)->nx<<(int)(*i)->ny;
-                i=ActiveNum.erase(i);
-            }
-            else if ((*i)->MineNum == flags)//周围可标无雷
-            {
-                IfAct=true;
-                qDebug()<<"clickable around "<<(int)(*i)->nx<<(int)(*i)->ny;
-                
-                for(auto& c:r)
-                    if(c->status==CellStatus::ini) c->Henso(CellStatus::clickable);
 
-                i=ActiveNum.erase(i);
-            }
-            else if (activity ==(*i)->MineNum - flags )//周围可标雷
-            {
-                IfAct=true;
-                qDebug()<<"flag around "<<(int)(*i)->nx<<(int)(*i)->ny;
-                for(auto& c:r)
-                    if(c->status==CellStatus::ini) c->Henso(CellStatus::flag);
-                i=ActiveNum.erase(i);
-            }
-            else i++;
-        }
-    }
-    //简单标旗结束
-    QList<Cell*> AllNum,//全部数字格，用于回溯的错误判断
-                ActiveIni;//活跃的未翻开格，指周围有数字的未翻开格
-    int InactiveIniNum=0;//非活跃未翻开格数
-    for(auto x=1;x<=row;x++)
-        for(auto y=1;y<=column;y++)
-            if(cells[x][y]->status == CellStatus::num) AllNum.push_back(cells[x][y]);
-            else if(cells[x][y]->status == CellStatus::ini)
-            {
-                bool IfNum=false;
-                auto r=RoundCell(cells[x][y]);
-                for(auto& c:r)
-                    if(c->status==CellStatus::num)
-                    {
-                        IfNum=true;
-                        break;
-                    }
-                if(IfNum) ActiveIni.push_back(cells[x][y]);
-                else InactiveIniNum++;
-            }
-}
-
-
-// ResNode::ResNode(int xx,int yy,int flagg):
-// x(xx),y(yy),flag(flagg)
-// {
-// }
-// bool ResNode::operator==(const ResNode& another) const
-// {
-//     return another.x == x && another.y == y;
-// }
 ProbeResult::ProbeResult(QList<Cell*>& TheAcitveIni)
 :
 AcitveIni(TheAcitveIni),
@@ -570,23 +470,6 @@ void ProbeResult::RmNecessity()
         }
     }
 }
-// void ProbeResult::Del(Cell*& c)
-// {
-//     if(Res.size()==0)return;
-//     ResNode tmp(c->nx,c->ny,c->status == CellStatus::flag);
-//     QVector<QList<ResNode>::iterator> its(Res.size());
-//     for(int i=0;i<Res.size();i++) its[i]=Res[i].begin(); 
-//     while (its[0] != Res[0].end())
-//     {
-//         if(tmp == *its[0])
-//         {
-//             for(int i=0;i<Res.size();i++)
-//                 Res[i].erase(its[i]);
-//             return;
-//         }
-//         for(auto& i:its) i++;
-//     }
-// }
 GraphicsScene::~GraphicsScene()
 {
 }
