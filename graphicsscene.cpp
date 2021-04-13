@@ -198,6 +198,7 @@ ProbeResult& Result//用于存储
     QStack<Cell*> rec;
     auto nowit=it;
     auto NowActiveNum=ActiveNum;
+    bool r=false;//返回值记录
     (*nowit)->Henso(CellStatus::flag);
 
     RevocableAutoFlag(NowActiveNum,rec);//此时NowActiveNum不可信
@@ -207,7 +208,7 @@ ProbeResult& Result//用于存储
         qDebug()<<"clickable "<<(int)(*nowit)->nx<<' '<<(int)(*it)->ny;
         (*nowit)->Henso(CellStatus::clickable);
         Recover(rec);
-        return false;
+        return r;
     }
     while(nowit != ActiveIni.end())
     {
@@ -220,6 +221,7 @@ ProbeResult& Result//用于存储
         nowit++;
     }
     Result.Add();
+    r=true;
     F_Break:
     qDebug()<<"Recover Flag Assume!";
     
@@ -238,7 +240,7 @@ ProbeResult& Result//用于存储
         qDebug()<<"flag "<<(int)(*it)->nx<<' '<<(int)(*it)->ny;
         (*nowit)->Henso(CellStatus::flag);
         Recover(rec);
-        return false;
+        return r;
     }
     while(nowit != ActiveIni.end())
     {
