@@ -17,6 +17,7 @@ QPixmap * GraphicsScene::num7=nullptr;
 QPixmap * GraphicsScene::num8=nullptr;
 QPixmap * GraphicsScene::num9=nullptr;
 
+QStack<Cell*> GraphicsScene::RedoTipList;
 std::vector<std::vector<Cell*>> GraphicsScene::cells;
 
 char GraphicsScene::row=9;
@@ -34,6 +35,17 @@ const QVector<QPair<int,int>> RoundStep
                             QPair<int,int>(1,0),
                             QPair<int,int>(1,1)
                         };
+
+int Fac(int n)
+{
+    int Ans=1;
+    while(n >=2)
+    {
+        Ans*=n;
+        n--;
+    }
+    return Ans;
+}
 GraphicsScene::GraphicsScene(QObject *parent) : QGraphicsScene(parent)
 {
     blank=new QPixmap("://images/blank.png");  
@@ -55,6 +67,20 @@ GraphicsScene::GraphicsScene(QObject *parent) : QGraphicsScene(parent)
     cells.resize(row+2);//哨兵加入
     MineBlockSet();
 }
+// unsigned nChoosek( unsigned n, unsigned k )
+// {
+//     if (k > n) return 0;
+//     if (k * 2 > n) k = n-k;
+//     if (k == 0) return 1;
+
+//     int result = n;
+//     for( int i = 2; i <= k; ++i ) 
+//     {
+//         result *= (n-i+1);
+//         result /= i;
+//     }
+//     return result;
+// }
 
 void GraphicsScene::MineBlockSet(int x,int y)
 {
@@ -74,9 +100,12 @@ void GraphicsScene::MineBlockSet(int x,int y)
             }
             else cells[i].push_back(new Cell(CellStatus::kara));
         }
-    time_t seed=time(0);
+    time_t seed=
+    //time(0)
+    1618400259
+    ;
     qDebug()<<"seed:"<<seed;
-    std::default_random_engine e(1618243303);
+    std::default_random_engine e(seed);
     
 
     for(int i=0;i<x*y;i++)
@@ -324,7 +353,31 @@ void GraphicsScene::AutoFlag()
     ProbeResult Result(ActiveIni);
     Probe(ActiveIni,ActiveNum,Result);
     Result.RmNecessity();
-    //for(auto& i:ActiveIni) i->setAcceptHoverEvents(true);
+    using namespace std;
+    if(ActiveIni.size()==0) return;
+    vector<int> flags(Result.Res.back().size(),0);
+    for(auto& i:ActiveIni) cout<<(int)i->nx<<','<<(int)i->ny<<' ';
+    for(int j=0;j<Result.Res.back().size();j++)
+    {
+        cout<<endl;
+        for(auto& i:Result.Res) 
+        {
+            if(i[j]) flags[j]++;
+            cout<<((i[j])?"f ":"c ");
+        }
+        //cout<<endl;
+    }
+    cout<<endl;
+    QVector<float> Pbs=Result.Cal();
+    for(auto& i:Pbs) cout<<i<<' ';
+    auto j=Pbs.begin();
+    for(auto& i:ActiveIni)
+    {
+        i->setAcceptHoverEvents(true);
+        RedoTipList.push(i);
+        i->setToolTip("地雷概率:" +  QString::number((*j)*100,10,2) + '%');
+        j++;
+    }
 }
 
 //只在非试探状态下使用
@@ -425,6 +478,10 @@ void GraphicsScene::RevocableAutoFlag(QList<Cell*>& ActiveNum,QStack<Cell*>& ss)
         }
     }
 }
+GraphicsScene::~GraphicsScene()
+{
+}
+
 
 ProbeResult::ProbeResult(QList<Cell*>& TheAcitveIni)
 :
@@ -472,6 +529,57 @@ void ProbeResult::RmNecessity()
         }
     }
 }
-GraphicsScene::~GraphicsScene()
+QVector<float> ProbeResult::Cal()
 {
-}
+    QVector<float> r(Res.size(),0);
+    QMap<int,int> HMflags;
+    QMap<int,float> Prob;
+    QVector<int> flags(Res.back().size(),0);
+    for(int j=0;j<Res.back().size();j++)
+    {
+        for(auto& i:Res) 
+            if(i[j]) flags[j]++;
+        if(HMflags.find(flags[j]) == HMflags.end()) HMflags[flags[j]]=1;
+        else HMflags[flags[j]]+=1;
+    }
+    //HMflags[2]=2,HMflags[1]=1
+    //LeftMineNum=4
+    float all=0;
+    for(auto i=HMflags.begin();i !=HMflags.end();i++)
+    {
+        Prob[i.key()]=(1.0/Fac(GraphicsScene::LeftMineNum-i.key()))*i.value();
+        all +=Prob[i.key()];
+    }
+    for(auto i=Prob.begin();i !=Prob.end();i++) Prob[i.key()] /= all;
+    for(int j=0;j<Res.back().size();j++)
+    {
+        auto rr=r.begin();
+        for(auto& i:Res) 
+        {
+            if(i[j] == 1) *rr += (1.0/ HMflags[flags[j]])*Prob[flags[j]];
+            rr++;
+        }
+    }
+    return r;
+}   
+/*
+1表示有旗，0表示无
+下列为所有可能解
+10010
+01001
+00100
+
+C(n,k)表示n个里选k个
+2*6+3*9=12+27=39
+39-5=34
+34 (1,2) 4
+All=C(34,2)*2+C(34,3)*1 //全部可能情况
+2雷概率:=C(34,2)*2/All
+1雷概率:=C(34,3)/All
+大数直接约分
+2雷概率=(1/2*2)/(1/2)*2+1/6=6/7
+1雷概率=1/7
+1,2,4,5号:=0.5*2雷概率=3/7
+3号:=1雷概率=1/7
+
+*/

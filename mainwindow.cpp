@@ -64,6 +64,8 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *event)
 
 MainWindow::~MainWindow()
 {
+    qDebug()<<"Program End";
+    qDebug()<<"/****************************************************************/";
 }
 
 GraphicsView::GraphicsView(QGraphicsScene *scene,QWidget *parent): QGraphicsView(scene,parent)

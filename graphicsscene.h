@@ -19,9 +19,10 @@ public:
     ProbeResult(QList<Cell*>& TheAcitveIni);
     void Add();
     //void Del(Cell*& c);
-    QList<Cell*>& AcitveIni;//仅访问获取结果
+    QList<Cell*>& AcitveIni;//仅访问获取结果,在rm操作时删除确定值
     std::list<QVector<bool>> Res;//True为旗，False为可点击
     void RmNecessity();
+    QVector<float> Cal();//概率计算
 };
 class GraphicsScene : public QGraphicsScene
 {
@@ -51,6 +52,7 @@ public:
     
     static bool FlagCheck();
     static QVector<Cell*> RoundCell(Cell* c);
+    static QStack<Cell*> RedoTipList;
     static void BlankProcess(int x,int y);
     ~GraphicsScene();
 

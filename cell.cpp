@@ -181,10 +181,10 @@ char Cell::IfMine()
 void Cell::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
     //setToolTip("try");
-    //QToolTip::showText(event->screenPos(), toolTip());
+    QToolTip::showText(event->screenPos(), toolTip());
     //std::cout<<"triggered!\n";
 }
 void Cell::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
-    //QToolTip::hideText();
+    QToolTip::hideText();
 }

@@ -13,7 +13,7 @@
 #include <QAction>
 #include <QGraphicsItem>
 #include <iostream>
-#include<QFile>
+#include <QFile>
 #include "graphicsscene.h"
 
 class GraphicsView : public QGraphicsView
