@@ -8,7 +8,7 @@ char Cell::nc=1;
 char Cell::nr=1;
 char Cell::pix=50;
 
-Cell::Cell(char x):Cell((nr-1)*pix,(nc-1)*pix,x)
+Cell::Cell(char x):Cell(nc,nr,x)
 {
     nx=nc;ny=nr;
     if(nr==GraphicsScene::row)
@@ -21,15 +21,14 @@ Cell::Cell(char x):Cell((nr-1)*pix,(nc-1)*pix,x)
         nr++;
     }
 }
-Cell::Cell(qreal x,qreal y,char k)//构造函数
+Cell::Cell(int x,int y,char k)
+:QGraphicsPixmapItem(*GraphicsScene::ini),
+nx(x),ny(y),MineNum(k),status(CellStatus::ini)
+//构造函数
 {
-    //setAcceptHoverEvents(true);
-    MineNum = k;
-    status=CellStatus::ini;
-    setPixmap(*GraphicsScene::ini);
-
-    // Henso(CellStatus::ini);
-    setPos(x,y);
+    // MineNum = k;
+    // status=CellStatus::ini;
+    setPos((x-1)*pix,(y-1)*pix);
 }
 Cell::Cell(CellStatus s)
 {
@@ -119,7 +118,7 @@ void Cell::Henso(CellStatus NewStatus)
 }
 void Cell::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    //setToolTip("try");
+    if(status != CellStatus::num && status != CellStatus::blank) GraphicsScene::RedoTip(); 
 }
 
 void Cell::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
@@ -184,6 +183,9 @@ void Cell::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
     QToolTip::showText(event->screenPos(), toolTip());
     //std::cout<<"triggered!\n";
 }
+void Cell::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
+{
+    QToolTip::showText(event->screenPos(), toolTip());}
 void Cell::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
     QToolTip::hideText();

@@ -93,7 +93,7 @@ void GraphicsScene::MineBlockSet(int x,int y)
             if(i>=1 && i<=row && j>=1 && j<=column)
             {
                 if(count>=TotalMineNum) ifm=0;
-                cells[i].push_back(new Cell(ifm));
+                cells[i].push_back(new Cell(i,j,ifm));
                 cell_1d.push_back(cells[i].back());
                 addItem(cells[i].back());
                 count++;
@@ -292,6 +292,7 @@ ProbeResult& Result//用于存储
 }
 void GraphicsScene::AutoFlag()
 {
+    RedoTip();
     QList<Cell*> ActiveNum;//活跃数字队列，指周围有未翻开格子的数字格
     for(auto x=1;x<=row;x++)
         for(auto y=1;y<=column;y++)
@@ -327,8 +328,8 @@ void GraphicsScene::AutoFlag()
         return;
     }
     //简单标旗结束
-    QList<Cell*> ActiveIni;//活跃的未翻开格，指周围有数字的未翻开格
-    int InactiveIniNum=0;//非活跃未翻开格数
+    QList<Cell*> ActiveIni,InActiveIni;//活跃的未翻开格，指周围有数字的未翻开格
+    int InActiveIniNum=0;//非活跃未翻开格数
     for(auto x=1;x<=row;x++)
         for(auto y=1;y<=column;y++)
             if(cells[x][y]->status == CellStatus::ini)
@@ -342,17 +343,17 @@ void GraphicsScene::AutoFlag()
                         break;
                     }
                 if(IfNum) ActiveIni.push_back(cells[x][y]);
-                else InactiveIniNum++;
+                else InActiveIni.push_back(cells[x][y]);
             }
-    //std::cout<<InactiveIniNum<<std::endl;
-    if( InactiveIniNum==0 && ActiveIni.size()==0 && FlagCheck() )
+    //std::cout<<InActiveIniNum<<std::endl;
+    if( InActiveIni.size()==0 && ActiveIni.size()==0 && FlagCheck() )
     {
         QMessageBox::information(NULL, tr("提示"), tr("游戏胜利"));
         return;
     }
     ProbeResult Result(ActiveIni);
     Probe(ActiveIni,ActiveNum,Result);
-    Result.RmNecessity();
+    Result.RmNecessity(InActiveIni);
     using namespace std;
     if(ActiveIni.size()==0) return;
     vector<int> flags(Result.Res.back().size(),0);
@@ -368,7 +369,8 @@ void GraphicsScene::AutoFlag()
         //cout<<endl;
     }
     cout<<endl;
-    QVector<float> Pbs=Result.Cal();
+    float InActiveProb;
+    QVector<float> Pbs=Result.Cal(InActiveProb,InActiveIni.size());
     for(auto& i:Pbs) cout<<i<<' ';
     auto j=Pbs.begin();
     for(auto& i:ActiveIni)
@@ -377,6 +379,12 @@ void GraphicsScene::AutoFlag()
         RedoTipList.push(i);
         i->setToolTip("地雷概率:" +  QString::number((*j)*100,10,2) + '%');
         j++;
+    }
+    for(auto& i:InActiveIni)
+    {
+        i->setAcceptHoverEvents(true);
+        RedoTipList.push(i);
+        i->setToolTip("地雷概率:" +  QString::number(InActiveProb*100,10,2) + '%');
     }
 }
 
@@ -478,6 +486,14 @@ void GraphicsScene::RevocableAutoFlag(QList<Cell*>& ActiveNum,QStack<Cell*>& ss)
         }
     }
 }
+void GraphicsScene::RedoTip()
+{
+    while(!RedoTipList.empty())
+    {
+        RedoTipList.top()->setAcceptHoverEvents(false);
+        RedoTipList.pop();
+    }
+}
 GraphicsScene::~GraphicsScene()
 {
 }
@@ -499,7 +515,7 @@ void ProbeResult::Add()
         i++;j++;
     }
 }
-void ProbeResult::RmNecessity()
+void ProbeResult::RmNecessity(QList<Cell*> InActiveIni)
 {
     auto i=AcitveIni.begin();
     auto j=Res.begin();
@@ -513,12 +529,14 @@ void ProbeResult::RmNecessity()
         if(flag)
         {
             (*i)->Henso(CellStatus::flag);
+            InActiveIni.push_back(*i);
             i=AcitveIni.erase(i);
             j=Res.erase(j);
         }
         else if(clickable)
         {
             (*i)->Henso(CellStatus::clickable);
+            InActiveIni.push_back(*i);
             i=AcitveIni.erase(i);
             j=Res.erase(j);
         }
@@ -529,11 +547,12 @@ void ProbeResult::RmNecessity()
         }
     }
 }
-QVector<float> ProbeResult::Cal()
+QVector<float> ProbeResult::Cal(float& InAcitveProb,int IncativeSize)
 {
+    InAcitveProb =0;
     QVector<float> r(Res.size(),0);
     QMap<int,int> HMflags;
-    QMap<int,float> Prob;
+    QMap<int,float> Prob;//key为解的雷数，value为该雷数出现的范围
     QVector<int> flags(Res.back().size(),0);
     for(int j=0;j<Res.back().size();j++)
     {
@@ -550,7 +569,11 @@ QVector<float> ProbeResult::Cal()
         Prob[i.key()]=(1.0/Fac(GraphicsScene::LeftMineNum-i.key()))*i.value();
         all +=Prob[i.key()];
     }
-    for(auto i=Prob.begin();i !=Prob.end();i++) Prob[i.key()] /= all;
+    for(auto i=Prob.begin();i !=Prob.end();i++)
+    {
+        Prob[i.key()] /= all;//计算活跃格出现i.key()个雷的概率
+        InAcitveProb += ((GraphicsScene::LeftMineNum-i.key())/(float)IncativeSize)*i.value();
+    }
     for(int j=0;j<Res.back().size();j++)
     {
         auto rr=r.begin();
@@ -561,7 +584,7 @@ QVector<float> ProbeResult::Cal()
         }
     }
     return r;
-}   
+}
 /*
 1表示有旗，0表示无
 下列为所有可能解

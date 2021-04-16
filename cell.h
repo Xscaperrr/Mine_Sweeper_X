@@ -26,7 +26,7 @@ public:
     char MineNum;//-1雷，0空，1-8周边雷数
     char nx,ny;//记录是第几行第几个
     Cell(char x=-1);
-    Cell(qreal x,qreal y,char k);
+    Cell(int x,int y,char k);
     Cell(CellStatus s);
     void SwapMine(Cell& x);
     //改变status及外表
@@ -40,7 +40,7 @@ public:
 
     void hoverEnterEvent(QGraphicsSceneHoverEvent *event);
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
-    //void hoverMoveEvent(QGraphicsSceneHoverEvent *event);
+    void hoverMoveEvent(QGraphicsSceneHoverEvent *event);
 
     void LeftRelease();
     char IfMine();
