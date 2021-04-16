@@ -66,21 +66,7 @@ GraphicsScene::GraphicsScene(QObject *parent) : QGraphicsScene(parent)
     TotalMineNum=10;
     cells.resize(row+2);//哨兵加入
     MineBlockSet();
-}
-// unsigned nChoosek( unsigned n, unsigned k )
-// {
-//     if (k > n) return 0;
-//     if (k * 2 > n) k = n-k;
-//     if (k == 0) return 1;
-
-//     int result = n;
-//     for( int i = 2; i <= k; ++i ) 
-//     {
-//         result *= (n-i+1);
-//         result /= i;
-//     }
-//     return result;
-// }
+} 
 
 void GraphicsScene::MineBlockSet(int x,int y)
 {
@@ -102,7 +88,8 @@ void GraphicsScene::MineBlockSet(int x,int y)
         }
     time_t seed=
     time(0)
-    //1618545621
+    //1618564101
+    
     ;
     qDebug()<<"seed:"<<seed;
     std::default_random_engine e(seed);
@@ -174,7 +161,7 @@ void GraphicsScene::GameRestart()
     for(auto& i:cells)
         for(auto& j:i)
             delete j;
-    qDebug()<<"delete over";
+    qDebug()<<"Restart!";
     cells.clear();
     cells.resize(row+2);//哨兵加入
     Cell::nc=Cell::nr=1;
@@ -185,7 +172,7 @@ bool GraphicsScene::ProbeCheck(const QList<Cell*>& AllNum)
 {
     for(auto& i:AllNum)
     {
-        std::vector<Cell*> r=RoundCell(i).toStdVector();
+        auto r=RoundCell(i);
         int flags=0;
         int inis=0;
         for(auto& c:r)
@@ -324,11 +311,14 @@ void GraphicsScene::AutoFlag()
                 else ActiveNum.push_back(cells[x][y]);//活跃但无法确定周遭状态
             }
     AutoFlag(ActiveNum);
-    if(ActiveNum.size()==0)//此时
-    {
-        if(LeftMineNum==0 && FlagCheck()) QMessageBox::information(NULL, tr("提示"), tr("游戏胜利"));
-        return;
-    }
+    // if(ActiveNum.size()==0)//此时
+    // {
+    //     if(!WinCheck())
+    //     {
+            
+    //     }
+    //     return;
+    // }
     //简单标旗结束
     QList<Cell*> ActiveIni,InActiveIni;//活跃的未翻开格，指周围有数字的未翻开格
     int InActiveIniNum=0;//非活跃未翻开格数
@@ -348,16 +338,38 @@ void GraphicsScene::AutoFlag()
                 else InActiveIni.push_back(cells[x][y]);
             }
     //std::cout<<InActiveIniNum<<std::endl;
-    if( InActiveIni.size()==0 && ActiveIni.size()==0 && FlagCheck() )
+    if( ActiveIni.size()==0 )
     {
-        QMessageBox::information(NULL, tr("提示"), tr("游戏胜利"));
+        if(!WinCheck())
+        {
+            float InActiveProb=(float)LeftMineNum/InActiveIni.size();
+            for(auto& i:InActiveIni)
+            {
+                i->setAcceptHoverEvents(true);
+                RedoTipList.push(i);
+                i->setToolTip("地雷概率:" +  QString::number(InActiveProb*100,10,2) + '%');
+            }
+        }
         return;
     }
     ProbeResult Result(ActiveIni);
     Probe(ActiveIni,ActiveNum,Result);
     Result.RmNecessity(InActiveIni);
     using namespace std;
-    if(ActiveIni.size()==0) return;
+    if( ActiveIni.size()==0 )
+    {
+        if(!WinCheck())
+        {
+            float InActiveProb=(float)LeftMineNum/InActiveIni.size();
+            for(auto& i:InActiveIni)
+            {
+                i->setAcceptHoverEvents(true);
+                RedoTipList.push(i);
+                i->setToolTip("地雷概率:" +  QString::number(InActiveProb*100,10,2) + '%');
+            }
+        }
+        return;
+    }
     vector<int> flags(Result.Res.back().size(),0);
     cout<<endl;
     for(auto& i:ActiveIni) cout<<(int)i->nx<<','<<(int)i->ny<<' ';
@@ -498,10 +510,14 @@ void GraphicsScene::RedoTip()
         RedoTipList.pop();
     }
 }
-void GraphicsScene::WinCheck()
+bool GraphicsScene::WinCheck()
 {
-    if(LeftMineNum==0 && FlagCheck()) QMessageBox::information(NULL, tr("提示"), tr("游戏胜利"));
-    return;
+    if(LeftMineNum==0 && FlagCheck())
+    {
+        QMessageBox::information(NULL, tr("提示"), tr("游戏胜利"));
+        return true;
+    }
+    return false;
 }
 GraphicsScene::~GraphicsScene()
 {

@@ -53,7 +53,7 @@ public:
     static bool FlagCheck();
     static QVector<Cell*> RoundCell(Cell* c);
     static void RedoTip();
-    static void WinCheck();
+    static bool WinCheck();
     static QStack<Cell*> RedoTipList;
     static void BlankProcess(int x,int y);
     ~GraphicsScene();
