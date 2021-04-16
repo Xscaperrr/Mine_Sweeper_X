@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
     qInstallMessageHandler(customMessageHandler);
     auto t=time(0);
     qDebug()<<"/***************************************************************/";
-    qDebug()<<"Program End";
+    qDebug()<<"Program Start";
     
     qDebug()<<"Time:"<<ctime(&t);
     MainWindow w;

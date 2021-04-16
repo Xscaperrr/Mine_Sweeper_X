@@ -102,7 +102,7 @@ void GraphicsScene::MineBlockSet(int x,int y)
         }
     time_t seed=
     //time(0)
-    1618400259
+    1618545621
     ;
     qDebug()<<"seed:"<<seed;
     std::default_random_engine e(seed);
@@ -185,7 +185,7 @@ bool GraphicsScene::ProbeCheck(const QList<Cell*>& AllNum)
 {
     for(auto& i:AllNum)
     {
-        auto r=RoundCell(i);
+        std::vector<Cell*> r=RoundCell(i).toStdVector();
         int flags=0;
         int inis=0;
         for(auto& c:r)
@@ -193,7 +193,8 @@ bool GraphicsScene::ProbeCheck(const QList<Cell*>& AllNum)
                 if(c->status == CellStatus::ini) inis++;
                 if(c->status == CellStatus::flag) flags++;
             }
-        if(( flags> i->MineNum )||( inis+flags < i->MineNum )) return false;
+        if(( flags > i->MineNum )||( inis+flags < i->MineNum )) 
+            return false;
     }
     return true;
 }
@@ -259,13 +260,14 @@ ProbeResult& Result//用于存储
     Recover(rec);
     nowit=it;
     NowActiveNum=ActiveNum;
-
     (*nowit)->Henso(CellStatus::clickable);
+
     RevocableAutoFlag(NowActiveNum,rec);
 
     if(!ProbeCheck(ActiveNum))
     {
         qDebug()<<"Paradox clickable ";
+        if(r) goto C_Break ;
         qDebug()<<"flag "<<(int)(*it)->nx<<' '<<(int)(*it)->ny;
         (*nowit)->Henso(CellStatus::flag);
         Recover(rec);
