@@ -101,8 +101,8 @@ void GraphicsScene::MineBlockSet(int x,int y)
             else cells[i].push_back(new Cell(CellStatus::kara));
         }
     time_t seed=
-    //time(0)
-    1618545621
+    time(0)
+    //1618545621
     ;
     qDebug()<<"seed:"<<seed;
     std::default_random_engine e(seed);
@@ -359,6 +359,7 @@ void GraphicsScene::AutoFlag()
     using namespace std;
     if(ActiveIni.size()==0) return;
     vector<int> flags(Result.Res.back().size(),0);
+    cout<<endl;
     for(auto& i:ActiveIni) cout<<(int)i->nx<<','<<(int)i->ny<<' ';
     for(int j=0;j<Result.Res.back().size();j++)
     {
@@ -373,6 +374,7 @@ void GraphicsScene::AutoFlag()
     cout<<endl;
     float InActiveProb;
     QVector<float> Pbs=Result.Cal(InActiveProb,InActiveIni.size());
+    cout<<"InActiveProb:"<<InActiveProb<<endl;
     for(auto& i:Pbs) cout<<i<<' ';
     auto j=Pbs.begin();
     for(auto& i:ActiveIni)
@@ -495,6 +497,11 @@ void GraphicsScene::RedoTip()
         RedoTipList.top()->setAcceptHoverEvents(false);
         RedoTipList.pop();
     }
+}
+void GraphicsScene::WinCheck()
+{
+    if(LeftMineNum==0 && FlagCheck()) QMessageBox::information(NULL, tr("提示"), tr("游戏胜利"));
+    return;
 }
 GraphicsScene::~GraphicsScene()
 {

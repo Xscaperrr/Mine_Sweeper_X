@@ -140,7 +140,11 @@ void Cell::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
             break;
         }
     }
-    else LeftRelease();//为了自动扩展拆分
+    else
+    { 
+        LeftRelease();//为了自动扩展拆分
+        GraphicsScene::WinCheck();
+    }
 }
 void Cell::LeftRelease()
 {
