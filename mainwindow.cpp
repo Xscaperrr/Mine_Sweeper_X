@@ -39,11 +39,11 @@ MainWindow::MainWindow(QWidget *parent)
     actions[0].push_back(new QAction("重启",this));//0 0
     actions[0].push_back(new QAction("难度",this));//0 1
     actions[1].push_back(new QAction("标旗正确校验",this));//1 0
-    actions[1].push_back(new QAction("自动标旗",this));//1 1
+    actions[1].push_back(new QAction("自动标旗并计算概率",this));//1 1
 
     connect(actions[0][0],&QAction::triggered,scene,&GraphicsScene::GameRestart);
     connect(actions[1][0],&QAction::triggered,scene,&GraphicsScene::FlagCheckEvent);
-    connect(actions[1][1],&QAction::triggered,scene,&GraphicsScene::AutoFlag);
+    connect(actions[1][1],&QAction::triggered,scene,QOverload<>::of(&GraphicsScene::AutoFlag));
 
     for(int i=0;i<menus.size();i++)
     {
@@ -64,6 +64,8 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *event)
 
 MainWindow::~MainWindow()
 {
+    qDebug()<<"Program End";
+    qDebug()<<"/****************************************************************/";
 }
 
 GraphicsView::GraphicsView(QGraphicsScene *scene,QWidget *parent): QGraphicsView(scene,parent)
