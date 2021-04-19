@@ -89,7 +89,7 @@ void GraphicsScene::MineBlockSet(int x,int y)
     time_t seed=
     time(0)
     //1618564101
-    
+
     ;
     qDebug()<<"seed:"<<seed;
     std::default_random_engine e(seed);
@@ -370,7 +370,7 @@ void GraphicsScene::AutoFlag()
         }
         return;
     }
-    vector<int> flags(Result.Res.back().size(),0);
+    //vector<int> flags(Result.Res.back().size(),0);
     cout<<endl;
     for(auto& i:ActiveIni) cout<<(int)i->nx<<','<<(int)i->ny<<' ';
     for(int j=0;j<Result.Res.back().size();j++)
@@ -378,7 +378,7 @@ void GraphicsScene::AutoFlag()
         cout<<endl;
         for(auto& i:Result.Res) 
         {
-            if(i[j]) flags[j]++;
+            //if(i[j]) flags[j]++;
             cout<<((i[j])?"f ":"c ");
         }
         //cout<<endl;
@@ -424,7 +424,7 @@ void GraphicsScene::AutoFlag(QList<Cell*>& ActiveNum)
             }
             if (activity == 0)//已经不活跃
             {
-                IfAct=true;
+                //IfAct=true;
                 // qDebug()<<"release "<<(int)(*i)->nx<<(int)(*i)->ny;
                 i=ActiveNum.erase(i);
             }
@@ -630,4 +630,10 @@ All=C(34,2)*2+C(34,3)*1 //全部可能情况
 1,2,4,5号:=0.5*2雷概率=3/7
 3号:=1雷概率=1/7
 
+
+35
+211 9
+1*C(211,33)+4*C(211,32)+3*C(211,31)
+3*C(211,31)/1*C(211,33)+4*C(211,32)+3*C(211,31)
+3 / 1/33*32 + 4/32 + 3
 */
